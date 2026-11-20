@@ -1,7 +1,6 @@
 <mvc:View controllerName="Z_PR_PO_Report_GC.controller.View1" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core"
 	xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data" xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
-	xmlns:cc="sap.suite.ui.commons" displayBlock="true"
-	height="100%">
+	xmlns:cc="sap.suite.ui.commons" displayBlock="true" height="100%">
 	<App>
 		<pages>
 			<Page id="page" showHeader="false" enableScrolling="true" class="prpoPage">
@@ -30,14 +29,14 @@
 								<HBox class="prpoFilterBar" wrap="Wrap" renderType="Bare" alignItems="End">
 									<VBox class="prpoField prpoFieldPlant">
 										<Label text="Plant" required="true" labelFor="plantSelect"/>
-										<Input id="plantSelect" width="100%" placeholder="Enter plant code or use value help" value="{screen1>/selection/plant}" showValueHelp="true"
-							showSuggestion="true" filterSuggests="true" startSuggestion="1" suggestionItemSelected="onPlantSuggestionSelected"
-							valueHelpRequest="onPlantValueHelp" busy="{screen1>/plantsBusy}" busyIndicatorDelay="0" valueState="{screen1>/valueState/plant}"
-												valueStateText="{screen1>/valueText/plant}" change="onPlantChange">
-												<suggestionItems>
-													<core:Item key="{screen1>Plant}" text="{= ${screen1>Plant} + ' – ' + ${screen1>PlantName} }"/>
-												</suggestionItems>
-						</Input>
+										<Input id="plantSelect" width="100%" placeholder="Enter plant code or use value help" value="{screen1>/selection/plant}"
+											showValueHelp="true" showSuggestion="true" filterSuggests="true" startSuggestion="1" suggestionItemSelected="onPlantSuggestionSelected"
+											valueHelpRequest="onPlantValueHelp" busy="{screen1>/plantsBusy}" busyIndicatorDelay="0" valueState="{screen1>/valueState/plant}"
+											valueStateText="{screen1>/valueText/plant}" change="onPlantChange">
+											<suggestionItems>
+												<core:Item key="{screen1>Plant}" text="{= ${screen1>Plant} + ' – ' + ${screen1>PlantName} }"/>
+											</suggestionItems>
+										</Input>
 									</VBox>
 									<VBox class="prpoField prpoFieldType">
 										<Label text="Report Type" required="true" labelFor="reportType"/>
@@ -100,60 +99,74 @@
 										<!-- LEFT 50%: chart -->
 										<VBox class="prpoSplitCol prpoChartCol">
 											<Title text="PR / PO / GRN Quantity" level="H3" class="prpoSectionTitle"/>
-											<cc:ChartContainer id="chartContainer" class="prpoChartContainer" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
-												showPersonalization="true" showLegend="true" showLegendButton="false" personalizationPress="onChartPersonalization">
-												<cc:content>
-													<cc:ChartContainerContent icon="sap-icon://vertical-bar-chart" title="PR / PO / GRN quantities">
+											<ScrollContainer id="chartScrollContainer" width="100%" height="{screen1>/ui/chartViewportHeight}" horizontal="true" vertical="false"
+												focusable="true" class="prpoChartViewport">
+												<HBox id="chartCanvas" width="{screen1>/ui/chartWidth}" height="100%" renderType="Bare" class="prpoChartCanvas">
+													<cc:ChartContainer id="chartContainer" class="prpoChartContainer" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+														showPersonalization="false" showLegend="false" showLegendButton="false">
 														<cc:content>
-															<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
-																selectData="onChartSelect">
-												<viz:dataset>
-													<viz.data:FlattenedDataset data="{screen1>/periods}">
-														<viz.data:dimensions>
-															<viz.data:DimensionDefinition name="Period" value="{screen1>period}"/>
-														</viz.data:dimensions>
-														<viz.data:measures>
-															<viz.data:MeasureDefinition name="PR Quantity" value="{screen1>PRQty}"/>
-															<viz.data:MeasureDefinition name="PO Quantity" value="{screen1>POQty}"/>
-															<viz.data:MeasureDefinition name="GRN Quantity" value="{screen1>GRNQty}"/>
-														</viz.data:measures>
-													</viz.data:FlattenedDataset>
-												</viz:dataset>
-												<viz:feeds>
-													<viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Quantity,PO Quantity,GRN Quantity"/>
-													<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Period"/>
-												</viz:feeds>
-															</viz:VizFrame>
-													</cc:content>
-												</cc:ChartContainerContent>
-											</cc:content>
-										</cc:ChartContainer>
+															<cc:ChartContainerContent icon="sap-icon://vertical-bar-chart" title="PR / PO / GRN quantities">
+																<cc:content>
+																	<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
+																		selectData="onChartSelect" renderComplete="onChartRenderComplete">
+																		<viz:dataset>
+																			<viz.data:FlattenedDataset data="{screen1>/periods}">
+																				<viz.data:dimensions>
+																					<viz.data:DimensionDefinition name="Period" value="{screen1>period}"/>
+																				</viz.data:dimensions>
+																				<viz.data:measures>
+																					<viz.data:MeasureDefinition name="PR Quantity" value="{screen1>PRQty}"/>
+																					<viz.data:MeasureDefinition name="PO Quantity" value="{screen1>POQty}"/>
+																					<viz.data:MeasureDefinition name="GRN Quantity" value="{screen1>GRNQty}"/>
+																				</viz.data:measures>
+																			</viz.data:FlattenedDataset>
+																		</viz:dataset>
+																		<viz:feeds>
+																			<viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Quantity,PO Quantity,GRN Quantity"/>
+																			<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Period"/>
+																		</viz:feeds>
+																	</viz:VizFrame>
+																</cc:content>
+															</cc:ChartContainerContent>
+														</cc:content>
+													</cc:ChartContainer>
+												</HBox>
+											</ScrollContainer>
+											<HBox class="prpoExternalLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
+												<HBox class="prpoLegendItem" alignItems="Center"><core:Icon src="sap-icon://circle-task-2" class="prpoLegendSwatch prpoLegendPR"/><Text text="PR Quantity"/></HBox>
+												<HBox class="prpoLegendItem" alignItems="Center"><core:Icon src="sap-icon://circle-task-2" class="prpoLegendSwatch prpoLegendPO"/><Text text="PO Quantity"/></HBox>
+												<HBox class="prpoLegendItem" alignItems="Center"><core:Icon src="sap-icon://circle-task-2" class="prpoLegendSwatch prpoLegendGRN"/><Text text="GRN Quantity"/></HBox>
+											</HBox>
 										</VBox>
 										<!-- RIGHT 50%: table -->
 										<VBox class="prpoSplitCol prpoTableCol">
 											<Title text="Period-wise Quantity" level="H3" class="prpoSectionTitle"/>
-											<ScrollContainer id="periodTableScroll" width="100%" height="{screen1>/ui/tableHeight}" vertical="true" horizontal="false" focusable="true" class="prpoTableScroll">
-											<Table id="periodTable" items="{screen1>/periods}" mode="SingleSelectLeft" includeItemInSelection="true" selectionChange="onTableSelect"
-												class="prpoTable" noDataText="No periods to display" growing="false">
-												<columns>
-													<Column><Text text="Period"/></Column>
-													<Column minScreenWidth="Tablet" demandPopin="true"><Text text="Date Range"/></Column>
-													<Column hAlign="End"><Text text="PR Quantity"/></Column>
-													<Column hAlign="End"><Text text="PO Quantity"/></Column>
-													<Column hAlign="End"><Text text="GRN Quantity"/></Column>
-												</columns>
-												<items>
-													<ColumnListItem>
-														<cells>
-															<ObjectIdentifier title="{screen1>period}"/>
-															<Text text="{screen1>RangeText}"/>
-												<ObjectNumber number="{path:'screen1>PRQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
-												<ObjectNumber number="{path:'screen1>POQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
-												<ObjectNumber number="{path:'screen1>GRNQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
-														</cells>
-													</ColumnListItem>
-												</items>
-											</Table>
+											<ScrollContainer id="periodTableScroll" width="100%" height="{screen1>/ui/tableHeight}" vertical="true" horizontal="false" focusable="true"
+												class="prpoTableScroll">
+												<Table id="periodTable" items="{screen1>/periods}" mode="SingleSelectLeft" includeItemInSelection="true" selectionChange="onTableSelect"
+													class="prpoTable" noDataText="No periods to display" growing="false">
+													<columns>
+														<Column><Text text="Period"/></Column>
+														<Column minScreenWidth="Tablet" demandPopin="true"><Text text="Date Range"/></Column>
+														<Column hAlign="End"><Text text="PR Quantity"/></Column>
+														<Column hAlign="End"><Text text="PO Quantity"/></Column>
+														<Column hAlign="End"><Text text="GRN Quantity"/></Column>
+													</columns>
+													<items>
+														<ColumnListItem>
+															<cells>
+																<ObjectIdentifier title="{screen1>period}"/>
+																<Text text="{screen1>RangeText}"/>
+																<ObjectNumber
+																	number="{path:'screen1>PRQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
+																<ObjectNumber
+																	number="{path:'screen1>POQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
+																<ObjectNumber
+																	number="{path:'screen1>GRNQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
+															</cells>
+														</ColumnListItem>
+													</items>
+												</Table>
 											</ScrollContainer>
 										</VBox>
 									</HBox>

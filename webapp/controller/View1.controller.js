@@ -5,14 +5,10 @@ sap.ui.define([
 	"sap/ui/model/FilterOperator",
 	"sap/m/SelectDialog",
 	"sap/m/StandardListItem",
-	"sap/m/Popover",
-	"sap/m/HBox",
-	"sap/m/Label",
-	"sap/m/Switch",
 	"sap/viz/ui5/controls/Popover",
 	"sap/ui/Device",
 	"sap/ui/model/type/Float" // preload only: used as a type in View1.view.xml (avoids a sync load)
-], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, Popover, HBox, Label, Switch, VizPopover, Device) {
+], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, VizPopover, Device) {
 	"use strict";
 
 	var DEBUG = true;
@@ -50,7 +46,8 @@ sap.ui.define([
 			this._retryAction = null;
 
 			// Reserve space for ChartContainer's toolbar while keeping the split section height fixed.
-			var chartHeight = Device.system.phone ? "14rem" : (Device.system.tablet ? "16rem" : "18rem");
+			var chartHeight = Device.system.phone ? "11rem" : (Device.system.tablet ? "13rem" : "15rem");
+			var chartViewportHeight = Device.system.phone ? "15rem" : (Device.system.tablet ? "17rem" : "19rem");
 			var tableHeight = Device.system.phone ? "18rem" : (Device.system.tablet ? "20rem" : "22rem");
 
 			this._logInfo("Initialization", {
@@ -91,6 +88,8 @@ sap.ui.define([
 				},
 				ui: {
 					chartHeight: chartHeight,
+					chartViewportHeight: chartViewportHeight,
+					chartWidth: "720px",
 					tableHeight: tableHeight,
 					subPeriodLabel: "Month"
 				}
@@ -122,36 +121,6 @@ sap.ui.define([
 			this._vizPopover = new VizPopover();
 			this._vizPopover.connect(chart.getVizUid());
 			this.getView().addDependent(this._vizPopover);
-		},
-
-		onChartPersonalization: function(event) {
-			var chart = this.byId("quantityChart");
-			if (!this._chartOptionsPopover) {
-				var dataLabelsSwitch = new Switch({
-					state: true,
-					change: function(changeEvent) {
-						chart.setVizProperties({ plotArea: { dataLabel: { visible: changeEvent.getParameter("state") } } });
-					}
-				});
-				var legendSwitch = new Switch({
-					state: true,
-					change: function(changeEvent) {
-						chart.setVizProperties({ legend: { visible: changeEvent.getParameter("state") } });
-					}
-				});
-				this._chartOptionsPopover = new Popover({
-					title: "Chart options",
-					placement: "Bottom",
-					contentWidth: "15rem",
-					content: [
-						new HBox({ alignItems: "Center", justifyContent: "SpaceBetween", items: [new Label({ text: "Data labels" }), dataLabelsSwitch] }),
-						new HBox({ alignItems: "Center", justifyContent: "SpaceBetween", items: [new Label({ text: "Legend" }), legendSwitch] })
-					]
-				});
-				this._chartOptionsPopover.addStyleClass("prpoChartOptionsPopover");
-				this.getView().addDependent(this._chartOptionsPopover);
-			}
-			this._chartOptionsPopover.openBy(event.getSource());
 		},
 
 		/* =========================================================== */
@@ -483,6 +452,8 @@ sap.ui.define([
 					}
 					try {
 						var periods = this._processPeriodWiseResponse(response, params.TypeofRep);
+						this._fitChartPending = periods.length > 0;
+						vm.setProperty("/ui/chartWidth", Math.max(720, periods.length * 140) + "px");
 						vm.setProperty("/periods", periods);
 						vm.setProperty("/hasData", periods.length > 0);
 						vm.setProperty("/showNoData", periods.length === 0);
@@ -656,9 +627,17 @@ sap.ui.define([
 				},
 				plotArea: {
 					colorPalette: SERIES_COLORS,
+					dataPointSize: {
+						min: 12,
+						max: 28
+					},
+					gap: {
+						innerGroupSpacing: 0.15
+					},
 					dataLabel: {
 						visible: true,
-						formatString: "#,##0"
+						formatString: "#,##0",
+						hideWhenOverlap: false
 					},
 					gridline: {
 						visible: true
@@ -679,8 +658,7 @@ sap.ui.define([
 					}
 				},
 				legend: {
-					visible: true,
-					position: "top"
+					visible: false
 				},
 				interaction: {
 					selectability: {
@@ -688,6 +666,22 @@ sap.ui.define([
 					}
 				}
 			});
+		},
+
+		onChartRenderComplete: function() {
+			if (!this._fitChartPending) {
+				return;
+			}
+			this._fitChartPending = false;
+			var chart = this.byId("quantityChart");
+			if (!chart) {
+				return;
+			}
+			// ChartContainer zoom can leave a previous horizontal zoom window active.
+			// Zoom out to the fit-to-data view whenever a new response is rendered.
+			for (var i = 0; i < 10; i += 1) {
+				chart.zoom({ direction: "out" });
+			}
 		},
 
 		onChartSelect: function(event) {
