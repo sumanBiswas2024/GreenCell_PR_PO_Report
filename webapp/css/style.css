@@ -42,11 +42,19 @@
 
 .prpoCard.sapMPanel .sapMPanelContent {
 	border: none;
-	padding: 0.5rem 1rem 1rem;
+	padding: 0.75rem 1rem 1rem;
 }
 
-.prpoTableCard.sapMPanel .sapMPanelContent {
-	padding: 0;
+.prpoAnalysisPanel {
+	box-shadow: 0 0.25rem 1rem rgba(21, 52, 83, 0.09);
+}
+
+.prpoPanelContent {
+	gap: 0.65rem;
+}
+
+.prpoDetailsPanel .sapMPanelContent {
+	color: var(--sapContent_LabelColor, #556b82);
 }
 
 .prpoCardHeader.sapMTB {
@@ -65,16 +73,72 @@
 	white-space: nowrap;
 }
 
-/* ---------- Filters ---------- */
-.prpoFilterGrid .sapMLabel {
+/* ---------- Selection criteria: flexible row, fields never get squeezed ---------- */
+.prpoFilterBar {
+	gap: 0.75rem 1rem;
+}
+
+.prpoField {
+	flex: 1 1 12rem;
+	min-width: 11rem;
+}
+
+.prpoFieldPlant {
+	flex: 1.2 1 14rem;
+}
+
+.prpoFieldType {
+	flex: 1.4 1 19rem;      /* room for Month / Quarter / Year without truncation */
+	min-width: 17rem;
+}
+
+.prpoFieldYear {
+	flex: 0.7 1 9rem;
+	min-width: 8rem;
+}
+
+.prpoFieldPeriod {
+	flex: 1 1 12rem;
+}
+
+.prpoFieldActions {
+	flex: 0 0 auto;
+	min-width: 0;
+	gap: 0.5rem;
+}
+
+.prpoFilterBar .sapMLabel {
 	margin-bottom: 0.25rem;
 }
 
-.prpoActions {
-	align-items: center;
+.prpoFilterBar .sapMInputBase,
+.prpoFilterBar .sapMSlt,
+.prpoFilterBar .sapMSegB {
+	width: 100%;
+	max-width: 100%;
+}
+
+/* ---------- Analysis panel: 50 : 50 split (chart | table) ---------- */
+.prpoSplit {
+	gap: 1.5rem;
+}
+
+.prpoSplitCol {
+	flex: 1 1 28rem;        /* equal grow => 50:50; wraps to one column when narrower than ~2 x 28rem */
+	min-width: 0;
+}
+
+.prpoSectionTitle {
+	margin: 0.25rem 0 0.5rem;
 }
 
 /* ---------- Table ---------- */
+.prpoTable {
+	border: 1px solid var(--sapList_BorderColor, #e5e5e5);
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
 .prpoTable .sapMListTblHeaderCell {
 	background: var(--sapList_HeaderBackground, #f5f6f7);
 	font-weight: 600;
@@ -85,7 +149,7 @@
 }
 
 .prpoTableHint {
-	margin: 1rem;
+	margin-top: 0.75rem;
 	width: auto;
 }
 
@@ -123,11 +187,20 @@
 		padding: 0 0.75rem;
 	}
 
-	.prpoActions {
-		width: 100%;
+	.prpoField,
+	.prpoFieldPlant,
+	.prpoFieldType,
+	.prpoFieldYear,
+	.prpoFieldPeriod {
+		flex: 1 1 100%;
+		min-width: 0;
 	}
 
-	.prpoActions .sapMBtn {
+	.prpoFieldActions {
+		flex: 1 1 100%;
+	}
+
+	.prpoFieldActions .sapMBtn {
 		flex: 1;
 	}
 }

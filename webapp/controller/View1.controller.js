@@ -3,9 +3,11 @@ sap.ui.define([
 	"sap/ui/model/json/JSONModel",
 	"sap/ui/model/Filter",
 	"sap/ui/model/FilterOperator",
+	"sap/m/SelectDialog",
+	"sap/m/StandardListItem",
 	"sap/ui/Device",
 	"sap/ui/model/type/Float" // preload only: used as a type in View1.view.xml (avoids a sync load)
-], function(Controller, JSONModel, Filter, FilterOperator, Device) {
+], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, Device) {
 	"use strict";
 
 	var DEBUG = true;
@@ -42,15 +44,13 @@ sap.ui.define([
 			this._requestSerial = 0;
 			this._retryAction = null;
 
-			// Inside Fiori Launchpad the shell already provides the header, so hide our own ShellBar there.
-			var inLaunchpad = !!(sap.ushell && sap.ushell.Container);
-			var chartHeight = Device.system.phone ? "18rem" : (Device.system.tablet ? "22rem" : "26rem");
+			// Chart sits in the left half of the analysis panel, so keep it compact
+			var chartHeight = Device.system.phone ? "18rem" : (Device.system.tablet ? "20rem" : "22rem");
 
 			this._logInfo("Initialization", {
 				ui5Version: sap.ui.version,
 				serviceBasePath: "/sap/opu/odata/sap/ZO_MM_PRPOGR_QTY_SRV/",
-				modelAvailable: !!this.getOwnerComponent().getModel(),
-				inLaunchpad: inLaunchpad
+				modelAvailable: !!this.getOwnerComponent().getModel()
 			});
 
 			this.getView().setModel(new JSONModel({
@@ -84,7 +84,6 @@ sap.ui.define([
 					subPeriod: ""
 				},
 				ui: {
-					showShellBar: !inLaunchpad,
 					chartHeight: chartHeight,
 					subPeriodLabel: "Month"
 				}
@@ -139,6 +138,70 @@ sap.ui.define([
 					this._handleODataError(error, "Plant value-help loading failed", "Could not load plant values.", this._loadPlantValues.bind(
 						this));
 				}.bind(this)
+			});
+		},
+
+		onPlantValueHelp: function() {
+			if (!this._plantDialog) {
+				this._plantDialog = new SelectDialog({
+					title: "Select Plant",
+					noDataText: "No plant values available",
+					searchPlaceholder: "Search plant code or description",
+					rememberSelections: false,
+					items: {
+						path: "screen1>/plants",
+						template: new StandardListItem({
+							title: "{screen1>Plant}",
+							description: "{screen1>PlantName}",
+							info: "{screen1>Plant}",
+							type: "Active"
+						})
+					},
+					search: this.onPlantDialogSearch.bind(this),
+					liveChange: this.onPlantDialogSearch.bind(this),
+					confirm: this.onPlantDialogConfirm.bind(this)
+				});
+				this._plantDialog.setModel(this.getView().getModel("screen1"), "screen1");
+				this.getView().addDependent(this._plantDialog);
+			}
+			var binding = this._plantDialog.getBinding("items");
+			if (binding) {
+				binding.filter([]);
+			}
+			this._plantDialog.open();
+		},
+
+		onPlantDialogSearch: function(event) {
+			var query = String(event.getParameter("value") || "").trim();
+			var binding = event.getSource().getBinding("items");
+			if (!binding) {
+				return;
+			}
+			if (!query) {
+				binding.filter([]);
+				return;
+			}
+			binding.filter(new Filter({
+				filters: [
+					new Filter("Plant", FilterOperator.Contains, query),
+					new Filter("PlantName", FilterOperator.Contains, query)
+				],
+				and: false
+			}));
+		},
+
+		onPlantDialogConfirm: function(event) {
+			var item = event.getParameter("selectedItem");
+			if (!item) {
+				return;
+			}
+			var context = item.getBindingContext("screen1");
+			this.getView().getModel("screen1").setProperty("/selection/plant", context.getProperty("Plant"));
+			this._setFieldState("plant", "None", "");
+			this._markStale();
+			this._logInfo("Plant selected", {
+				Plant: context.getProperty("Plant"),
+				PlantName: context.getProperty("PlantName")
 			});
 		},
 
@@ -422,6 +485,7 @@ sap.ui.define([
 					ToDate: record.ToDate || "",
 					FromText: this._formatYmd(from, record.FromDate),
 					ToText: this._formatYmd(to, record.ToDate),
+					RangeText: this._formatYmd(from, record.FromDate) + " – " + this._formatYmd(to, record.ToDate),
 					PRQty: this._safeNumber(record.PRQty),
 					POQty: this._safeNumber(record.POQty),
 					GRNQty: this._safeNumber(record.GRNQty),
