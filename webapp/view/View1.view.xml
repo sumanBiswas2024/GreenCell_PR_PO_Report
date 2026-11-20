@@ -92,7 +92,7 @@
 									<!-- 50 : 50 split. Stacks to one column when the panel is narrow -->
 									<HBox class="prpoSplit" wrap="Wrap" renderType="Bare" alignItems="Start" visible="{screen1>/hasData}">
 										<!-- LEFT 50%: chart -->
-										<VBox class="prpoSplitCol">
+										<VBox class="prpoSplitCol prpoChartCol">
 											<Title text="PR / PO / GRN Quantity" level="H3" class="prpoSectionTitle"/>
 											<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
 												selectData="onChartSelect">
@@ -115,10 +115,11 @@
 											</viz:VizFrame>
 										</VBox>
 										<!-- RIGHT 50%: table -->
-										<VBox class="prpoSplitCol">
+										<VBox class="prpoSplitCol prpoTableCol">
 											<Title text="Period-wise Quantity" level="H3" class="prpoSectionTitle"/>
+											<ScrollContainer id="periodTableScroll" width="100%" height="{screen1>/ui/chartHeight}" vertical="true" horizontal="false" focusable="true" class="prpoTableScroll">
 											<Table id="periodTable" items="{screen1>/periods}" mode="SingleSelectLeft" includeItemInSelection="true" selectionChange="onTableSelect"
-												class="prpoTable" noDataText="No periods to display">
+												class="prpoTable" noDataText="No periods to display" growing="false">
 												<columns>
 													<Column><Text text="Period"/></Column>
 													<Column minScreenWidth="Tablet" demandPopin="true"><Text text="Date Range"/></Column>
@@ -131,17 +132,18 @@
 														<cells>
 															<ObjectIdentifier title="{screen1>period}"/>
 															<Text text="{screen1>RangeText}"/>
-															<ObjectNumber number="{path:'screen1>PRQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
-															<ObjectNumber number="{path:'screen1>POQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
-															<ObjectNumber number="{path:'screen1>GRNQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
+												<ObjectNumber number="{path:'screen1>PRQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
+												<ObjectNumber number="{path:'screen1>POQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
+												<ObjectNumber number="{path:'screen1>GRNQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, minFractionDigits:0, maxFractionDigits:0}}"/>
 														</cells>
 													</ColumnListItem>
 												</items>
 											</Table>
-											<MessageStrip text="Select a period from the table or chart to view the detailed dashboard later." type="Information" showIcon="true"
-												class="prpoTableHint" visible="{= !${screen1>/selectedPeriod} }"/>
+											</ScrollContainer>
 										</VBox>
 									</HBox>
+									<MessageStrip text="Select a period from the table or chart to view the detailed dashboard." type="Information" showIcon="true"
+										class="prpoTableHint" visible="{= ${screen1>/hasData} &amp;&amp; !${screen1>/selectedPeriod} }"/>
 								</VBox>
 							</content>
 						</Panel>

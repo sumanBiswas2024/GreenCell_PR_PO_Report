@@ -480,7 +480,7 @@ sap.ui.define([
 					id: [record.Werks, record.FromDate, record.ToDate].join("|"),
 					Werks: record.Werks || "",
 					Year: record.Year || (from ? String(from.y) : ""),
-					period: this._periodLabel(record, reportType, from),
+					period: this._periodLabel(record, reportType, from, to),
 					FromDate: record.FromDate || "", // raw yyyyMMdd – use for the detail request
 					ToDate: record.ToDate || "",
 					FromText: this._formatYmd(from, record.FromDate),
@@ -507,20 +507,35 @@ sap.ui.define([
 			return periods;
 		},
 
-		_periodLabel: function(record, reportType, from) {
-			var year = record.Year || (from ? String(from.y) : "");
-			var label;
-			if (reportType === "M") {
-				var month = parseInt(record.Month, 10) || (from ? from.m : NaN);
-				label = isFinite(month) && month >= 1 && month <= 12 ? MONTHS[month - 1] + " " + year : String(record.Month || "");
-			} else if (reportType === "Q") {
-				var match = /(\d)/.exec(String(record.Quarter || ""));
-				var quarter = match ? match[1] : (from ? String(Math.ceil(from.m / 3)) : "");
-				label = quarter ? "Q" + quarter + " " + year : "";
-			} else {
-				label = String(year);
+		_periodLabel: function(record, reportType, from, to) {
+			var year = from ? from.y : parseInt(record.Year, 10);
+			var month = from ? from.m : (parseInt(record.Month, 10) || NaN);
+			var monthRange = !!(from && to && from.y === to.y && from.m === to.m && from.d === 1 &&
+				to.d === new Date(to.y, to.m, 0).getDate());
+			var quarterRange = !!(from && to && from.y === to.y && from.d === 1 &&
+				[1, 4, 7, 10].indexOf(from.m) !== -1 && to.m === from.m + 2 &&
+				to.d === new Date(to.y, to.m, 0).getDate());
+			var yearRange = !!(from && to && from.y === to.y && from.m === 1 && from.d === 1 && to.m === 12 && to.d === 31);
+
+			// Some backend responses contain several month rows with the same Quarter/Year
+			// field. Use each row's date range so the chart gets a distinct category per row.
+			if (monthRange || reportType === "M") {
+				return month >= 1 && month <= 12 ? MONTHS_SHORT[month - 1] + " " + year : String(record.Month || "(Period unavailable)");
 			}
-			return label || "(Period unavailable)";
+			if (quarterRange) {
+				return "Q" + Math.ceil(from.m / 3) + " " + year;
+			}
+			if (yearRange || reportType === "Y" && !from) {
+				return String(year || record.Year || "(Period unavailable)");
+			}
+			if (from && to) {
+				return this._formatYmd(from, record.FromDate) + " – " + this._formatYmd(to, record.ToDate);
+			}
+			if (reportType === "Q") {
+				var match = /(\d)/.exec(String(record.Quarter || ""));
+				return match ? "Q" + match[1] + " " + (year || record.Year) : "(Period unavailable)";
+			}
+			return String(year || record.Year || "(Period unavailable)");
 		},
 
 		_parseYmd: function(value) {
@@ -555,7 +570,7 @@ sap.ui.define([
 				});
 				return 0;
 			}
-			return number;
+			return Math.round(number);
 		},
 
 		/* =========================================================== */
@@ -570,7 +585,7 @@ sap.ui.define([
 					colorPalette: SERIES_COLORS,
 					dataLabel: {
 						visible: true,
-						formatString: "#,##0.###"
+						formatString: "#,##0"
 					},
 					gridline: {
 						visible: true
@@ -582,7 +597,7 @@ sap.ui.define([
 						text: "Quantity"
 					},
 					label: {
-						formatString: "#,##0.###"
+							formatString: "#,##0"
 					}
 				},
 				categoryAxis: {

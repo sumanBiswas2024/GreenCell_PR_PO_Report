@@ -124,8 +124,31 @@
 }
 
 .prpoSplitCol {
-	flex: 1 1 28rem;        /* equal grow => 50:50; wraps to one column when narrower than ~2 x 28rem */
 	min-width: 0;
+	height: 25rem;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.prpoChartCol {
+	flex: 1.5 1 32rem;
+}
+
+.prpoTableCol {
+	flex: 1 1 21rem;
+}
+
+.prpoChartCol .sapVizFrame {
+	flex: 0 0 auto;
+}
+
+.prpoTableScroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	border: 1px solid var(--sapList_BorderColor, #e5e5e5);
+	border-radius: 0.5rem;
+	box-sizing: border-box;
 }
 
 .prpoSectionTitle {
@@ -134,9 +157,7 @@
 
 /* ---------- Table ---------- */
 .prpoTable {
-	border: 1px solid var(--sapList_BorderColor, #e5e5e5);
-	border-radius: 0.5rem;
-	overflow: hidden;
+	width: 100%;
 }
 
 .prpoTable .sapMListTblHeaderCell {
@@ -202,5 +223,15 @@
 
 	.prpoFieldActions .sapMBtn {
 		flex: 1;
+	}
+
+	.prpoSplitCol {
+		height: 21rem;
+	}
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+	.prpoSplitCol {
+		height: 23rem;
 	}
 }
