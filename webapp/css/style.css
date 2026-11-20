@@ -1,11 +1,11 @@
 /* Screen 1: refined Fiori dashboard styling. Layout and chart sizing stay data-driven. */
 :root {
-	--prpo-ink: #132a45;
-	--prpo-muted: #60758d;
-	--prpo-blue: #0873d1;
-	--prpo-blue-dark: #0755a6;
-	--prpo-blue-soft: #eaf4ff;
-	--prpo-border: #d9e4ef;
+	--prpo-ink: #17382a;
+	--prpo-muted: #61776a;
+	--prpo-blue: #16804a;
+	--prpo-blue-dark: #10683c;
+	--prpo-blue-soft: #e9f6ed;
+	--prpo-border: #d9e9dc;
 	--prpo-surface: #ffffff;
 	--prpo-shadow: 0 0.35rem 1.1rem rgba(27, 65, 105, 0.075), 0 0.08rem 0.24rem rgba(27, 65, 105, 0.045);
 }
@@ -13,32 +13,33 @@
 .prpoPage > section,
 .prpoPage .sapMPageEnableScrolling {
 	background:
-		radial-gradient(ellipse at 5% 0%, rgba(203, 228, 255, 0.5), transparent 34rem),
-		linear-gradient(145deg, #f3f7fc 0%, #edf3f9 52%, #f6f8fb 100%);
+		radial-gradient(ellipse at 5% 0%, rgba(205, 235, 211, 0.5), transparent 34rem),
+		linear-gradient(145deg, #f3f8f3 0%, #eef5ef 52%, #f7faf7 100%);
 }
 
 .prpoRoot {
 	max-width: 1720px;
 	margin: 0 auto;
-	padding: 1.25rem 1.5rem 2rem;
+	padding: 0.6rem 1.5rem 2rem;
 	box-sizing: border-box;
 }
 
 .prpoPageTitle {
 	position: relative;
-	padding: 0.65rem 0.3rem 1.25rem;
+	padding: 0.15rem 0.3rem 0.55rem;
 }
 
 .prpoPageTitle .sapMTitle {
 	color: var(--prpo-ink);
 	font-weight: 700;
 	letter-spacing: -0.025em;
+	line-height: 1.2;
 }
 
 .prpoSubtitle {
 	color: var(--prpo-muted);
-	margin-top: 0.35rem;
-	font-size: 0.95rem;
+	margin-top: 0.1rem;
+	font-size: 0.88rem;
 }
 
 .prpoMessage {
@@ -68,8 +69,8 @@
 }
 
 .prpoCardHeader.sapMTB {
-	background: linear-gradient(90deg, #f5faff 0%, #ffffff 65%);
-	border-bottom: 1px solid #e6edf5;
+	background: linear-gradient(90deg, #f5fbf6 0%, #ffffff 65%);
+	border-bottom: 1px solid #e6eee7;
 	min-height: 3.6rem;
 	padding: 0 1.15rem;
 }
@@ -89,11 +90,16 @@
 }
 
 .prpoSelectionPanel {
-	border-top: 3px solid #1782df;
+	border-top: 3px solid #16804a;
 }
 
 .prpoSelectionPanel .prpoCardHeader.sapMTB {
-	background: linear-gradient(100deg, #edf6ff 0%, #ffffff 78%);
+	background: linear-gradient(100deg, #edf8ef 0%, #ffffff 78%);
+	min-height: 2.8rem;
+}
+
+.prpoSelectionPanel.sapMPanel .sapMPanelContent {
+	padding: 0.55rem 0.9rem 0.75rem;
 }
 
 .prpoAnalysisPanel {
@@ -114,18 +120,18 @@
 
 /* Compact, aligned selection criteria */
 .prpoFilterBar {
-	gap: 0.85rem 1rem;
+	gap: 0.6rem 0.85rem;
 }
 
 .prpoField {
-	flex: 1 1 12rem;
-	min-width: 11rem;
+	flex: 1 1 10rem;
+	min-width: 9.5rem;
 }
 
-.prpoFieldPlant { flex: 1.2 1 14rem; }
-.prpoFieldType { flex: 1.4 1 19rem; min-width: 17rem; }
-.prpoFieldYear { flex: 0.7 1 9rem; min-width: 8rem; }
-.prpoFieldPeriod { flex: 1 1 12rem; }
+.prpoFieldPlant { flex: 1 1 12rem; }
+.prpoFieldType { flex: 1.2 1 15rem; min-width: 14rem; }
+.prpoFieldYear { flex: 0.65 1 7rem; min-width: 6.5rem; }
+.prpoFieldPeriod { flex: 0.9 1 10rem; }
 
 .prpoFieldActions {
 	flex: 0 0 auto;
@@ -135,10 +141,10 @@
 }
 
 .prpoFilterBar .sapMLabel {
-	color: #38516c;
-	font-size: 0.82rem;
+	color: #3e5b47;
+	font-size: 0.78rem;
 	font-weight: 700;
-	margin-bottom: 0.35rem;
+	margin-bottom: 0.2rem;
 }
 
 .prpoFilterBar .sapMInputBase,
@@ -161,7 +167,20 @@
 
 .prpoFilterBar .sapMInputBaseContentWrapper:hover,
 .prpoFilterBar .sapMSlt:hover {
-	border-color: #88b8e7;
+	border-color: #79b88a;
+}
+
+.prpoFilterBar .sapMInputBaseContentWrapper.sapMFocus,
+.prpoFilterBar .sapMSlt.sapMSltFocused {
+	border-color: #16804a;
+	box-shadow: 0 0 0 0.125rem rgba(22, 128, 74, 0.16);
+}
+
+.prpoFilterBar .sapMSegBBtnSel,
+.prpoFilterBar .sapMSegBBtnSel .sapMSegBBtnInner {
+	background: #16804a;
+	border-color: #16804a;
+	color: #fff;
 }
 
 .prpoFieldActions .sapMBtn .sapMBtnInner {
@@ -170,7 +189,14 @@
 }
 
 .prpoFieldActions .sapMBtnEmphasized .sapMBtnInner {
-	box-shadow: 0 0.2rem 0.5rem rgba(8, 115, 209, 0.2);
+	background: #16804a;
+	border-color: #16804a;
+	box-shadow: 0 0.2rem 0.5rem rgba(22, 128, 74, 0.2);
+}
+
+.prpoFieldActions .sapMBtnEmphasized:hover .sapMBtnInner {
+	background: #10683c;
+	border-color: #10683c;
 }
 
 /* Fixed-height analysis split. Internal scrolling remains owned by the controls. */
@@ -184,8 +210,8 @@
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
-	background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
-	border: 1px solid #e2eaf3;
+	background: linear-gradient(180deg, #ffffff 0%, #fcfefc 100%);
+	border: 1px solid #e2ece3;
 	border-radius: 0.8rem;
 	padding: 0.65rem 0.75rem 0.75rem;
 	box-sizing: border-box;
@@ -197,7 +223,7 @@
 .prpoChartCol .sapVizFrame { flex: 0 0 auto; }
 
 .prpoSectionTitle {
-	color: #183653;
+	color: #234b32;
 	font-weight: 700;
 	margin: 0.15rem 0 0.55rem;
 }
@@ -237,7 +263,7 @@
 .prpoTableScroll {
 	flex: 1 1 auto;
 	min-height: 0;
-	border: 1px solid #e1e9f2;
+	border: 1px solid #e1ece2;
 	border-radius: 0.6rem;
 	background: #fff;
 	box-sizing: border-box;
@@ -247,13 +273,13 @@
 .prpoTable { width: 100%; }
 
 .prpoTable .sapMListTblHeaderCell {
-	background: #f1f6fb;
-	border-bottom: 1px solid #dce7f2;
+	background: #f1f7f2;
+	border-bottom: 1px solid #dce9de;
 	font-weight: 700;
 }
 
 .prpoTable .sapMListTblHeaderCell .sapMText {
-	color: #38536e;
+	color: #385842;
 	font-size: 0.78rem;
 	font-weight: 700;
 }
@@ -263,12 +289,12 @@
 }
 
 .prpoTable .sapMListTblRow:hover > td {
-	background: #f5faff;
+	background: #f4faf5;
 }
 
 .prpoTable .sapMLIBSelected,
 .prpoTable .sapMLIBSelected > td {
-	background: #e8f4ff !important;
+	background: #e8f4eb !important;
 }
 
 .prpoTable .sapMListTblCell {
@@ -276,7 +302,7 @@
 }
 
 .prpoTable .sapMObjectIdentifierTitle {
-	color: #183653;
+	color: #234b32;
 	font-weight: 700;
 }
 
@@ -309,7 +335,7 @@
 
 @media (max-width: 600px) {
 	.prpoRoot { padding: 0.5rem 0.75rem 1.5rem; }
-	.prpoPageTitle { padding: 0.4rem 0.15rem 0.9rem; }
+	.prpoPageTitle { padding: 0.1rem 0.15rem 0.45rem; }
 	.prpoCard { border-radius: 0.75rem; }
 	.prpoCard.sapMPanel .sapMPanelContent { padding: 0.55rem; }
 	.prpoCardHeader.sapMTB { padding: 0 0.75rem; }

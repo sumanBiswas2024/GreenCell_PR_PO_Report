@@ -16,7 +16,7 @@
 							<link><Link text="Retry" visible="{screen1>/canRetry}" press="onRetry"/></link>
 						</MessageStrip>
 						<!-- PANEL 0: Selection Criteria (separate from the analysis panel) -->
-						<Panel id="selectionPanel" class="prpoCard prpoSelectionPanel" expandable="true" expanded="true" backgroundDesign="Solid"
+						<Panel id="selectionPanel" class="prpoCard prpoSelectionPanel" expandable="false" backgroundDesign="Solid"
 							accessibleRole="Region">
 							<headerToolbar>
 								<Toolbar class="prpoCardHeader" style="Clear">
