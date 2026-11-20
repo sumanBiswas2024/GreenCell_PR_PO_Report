@@ -1,0 +1,133 @@
+/* Modern card-based dashboard styling – uses theme variables so it follows Horizon / Fiori 3 / dark themes */
+
+.prpoPage > section,
+.prpoPage .sapMPageEnableScrolling {
+	background: var(--sapBackgroundColor, #f5f6f7);
+}
+
+.prpoRoot {
+	max-width: 1680px;
+	margin: 0 auto;
+	padding: 1rem 1.5rem 2rem;
+	box-sizing: border-box;
+}
+
+.prpoPageTitle {
+	padding: 0.25rem 0 1rem;
+}
+
+.prpoSubtitle {
+	color: var(--sapContent_LabelColor, #556b82);
+	margin-top: 0.25rem;
+}
+
+.prpoMessage {
+	margin-bottom: 1rem;
+}
+
+/* ---------- Cards ---------- */
+.prpoCard {
+	background: var(--sapTile_Background, #fff);
+	border: 1px solid var(--sapTile_BorderColor, #d9d9d9);
+	border-radius: 1rem;
+	box-shadow: var(--sapContent_Shadow0, 0 0 0.125rem 0 rgba(85, 107, 129, 0.2), 0 0.125rem 0.25rem 0 rgba(85, 107, 129, 0.1));
+	margin-bottom: 1rem;
+	overflow: hidden;
+}
+
+.prpoCard.sapMPanel,
+.prpoCard.sapMPanel .sapMPanelContent {
+	background: var(--sapTile_Background, #fff);
+}
+
+.prpoCard.sapMPanel .sapMPanelContent {
+	border: none;
+	padding: 0.5rem 1rem 1rem;
+}
+
+.prpoTableCard.sapMPanel .sapMPanelContent {
+	padding: 0;
+}
+
+.prpoCardHeader.sapMTB {
+	background: transparent;
+	border-bottom: 1px solid var(--sapList_BorderColor, #e5e5e5);
+	min-height: 3.5rem;
+	padding: 0 1rem;
+}
+
+.prpoCardIcon {
+	color: var(--sapHighlightColor, #0070f2);
+	margin-right: 0.5rem;
+}
+
+.prpoContextChip {
+	white-space: nowrap;
+}
+
+/* ---------- Filters ---------- */
+.prpoFilterGrid .sapMLabel {
+	margin-bottom: 0.25rem;
+}
+
+.prpoActions {
+	align-items: center;
+}
+
+/* ---------- Table ---------- */
+.prpoTable .sapMListTblHeaderCell {
+	background: var(--sapList_HeaderBackground, #f5f6f7);
+	font-weight: 600;
+}
+
+.prpoTable .sapMLIBSelected {
+	background: var(--sapList_SelectionBackgroundColor, #ebf8ff);
+}
+
+.prpoTableHint {
+	margin: 1rem;
+	width: auto;
+}
+
+/* ---------- Empty / loading ---------- */
+.prpoResultArea {
+	min-height: 12rem;
+}
+
+.prpoEmpty {
+	padding: 3rem 1.5rem;
+	text-align: center;
+}
+
+.prpoEmptyIcon {
+	color: var(--sapContent_IconColor, #556b82);
+	opacity: 0.6;
+	margin-bottom: 0.75rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+	.prpoRoot {
+		padding: 0.5rem 0.75rem 1.5rem;
+	}
+
+	.prpoCard {
+		border-radius: 0.75rem;
+	}
+
+	.prpoCard.sapMPanel .sapMPanelContent {
+		padding: 0.5rem;
+	}
+
+	.prpoCardHeader.sapMTB {
+		padding: 0 0.75rem;
+	}
+
+	.prpoActions {
+		width: 100%;
+	}
+
+	.prpoActions .sapMBtn {
+		flex: 1;
+	}
+}

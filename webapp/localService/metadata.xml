@@ -1,0 +1,217 @@
+<edmx:Edmx
+    xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx"
+    xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"
+    xmlns:sap="http://www.sap.com/Protocols/SAPData" Version="1.0">
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_AGGREGATION',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="Org.OData.Aggregation.V1" Alias="Aggregation"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_ANALYTICS',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.Analytics.v1" Alias="Analytics"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CAPABILITIES',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CODELIST',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.CodeList.v1" Alias="SAP__CodeList"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMON',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.Common.v1" Alias="Common"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMUNICATION',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.Communication.v1" Alias="Communication"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_MEASURES',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_PERSONALDATA',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.PersonalData.v1" Alias="PersonalData"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_UI',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="com.sap.vocabularies.UI.v1" Alias="UI"/>
+    </edmx:Reference>
+    <edmx:Reference
+        xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Uri="./iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_VALIDATION',Version='0001',SAP__Origin='LOCAL')/$value">
+        <edmx:Include Namespace="Org.OData.Validation.V1" Alias="Validation"/>
+    </edmx:Reference>
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema
+            xmlns="http://schemas.microsoft.com/ado/2008/09/edm" Namespace="ZO_MM_PRPOGR_QTY_SRV" xml:lang="en" sap:schema-version="1">
+            <EntityType Name="PRPOGRN_Quantity" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Werks"/>
+                    <PropertyRef Name="ToDate"/>
+                    <PropertyRef Name="FromDate"/>
+                </Key>
+                <Property Name="Werks" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ToDate" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FromDate" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TypeofRep" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="POQty" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="PRQty" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="GRNQty" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Year" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Quarter" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Month" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="I_PlantVHType" sap:label="Plants" sap:value-list="true" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Plant"/>
+                </Key>
+                <Property Name="Plant" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:text="PlantName" sap:label="Plant"/>
+                <Property Name="PlantName" Type="Edm.String" MaxLength="30" sap:label="Plant Name"/>
+                <Property Name="ValuationArea" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="Valuation Area"/>
+                <Property Name="PlantCustomer" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="Customer Number of Plant"/>
+                <Property Name="PlantSupplier" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="Supplier Number of Plant"/>
+                <Property Name="FactoryCalendar" Type="Edm.String" MaxLength="2" sap:display-format="UpperCase" sap:label="Factory Calendar" sap:quickinfo="Factory calendar key"/>
+                <Property Name="DefaultPurchasingOrganization" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="Purchasing Organization"/>
+                <Property Name="SalesOrganization" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="Sls Organization ICB" sap:quickinfo="Sales Organization for Intercompany Billing"/>
+                <Property Name="AddressID" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="Address"/>
+                <Property Name="PlantCategory" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label="Plant Category"/>
+                <Property Name="DistributionChannel" Type="Edm.String" MaxLength="2" sap:display-format="UpperCase" sap:label="Distribution Channel" sap:quickinfo="Distribution Channel for Intercompany Billing"/>
+                <Property Name="Division" Type="Edm.String" MaxLength="2" sap:display-format="UpperCase" sap:label="Intercompany Billing Division" sap:quickinfo="Division for Intercompany Billing"/>
+            </EntityType>
+            <EntityType Name="ZI_MM_PO_PR_GRNType" sap:label="PR PO GRN Qty Comparison Report" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="banfn"/>
+                    <PropertyRef Name="bnfpo"/>
+                    <PropertyRef Name="ebeln"/>
+                    <PropertyRef Name="ebelp"/>
+                    <PropertyRef Name="mblnr"/>
+                    <PropertyRef Name="mjahr"/>
+                    <PropertyRef Name="ZEILE"/>
+                </Key>
+                <Property Name="banfn" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="PR Number" sap:quickinfo="Purchase Requisition Number"/>
+                <Property Name="bnfpo" Type="Edm.String" Nullable="false" MaxLength="5" sap:display-format="NonNegative" sap:label="PR Item Number" sap:quickinfo="Item number of purchase requisition"/>
+                <Property Name="ebeln" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="PO Number" sap:quickinfo="Purchasing Document Number"/>
+                <Property Name="ebelp" Type="Edm.String" Nullable="false" MaxLength="5" sap:display-format="NonNegative" sap:label="PO Item Number" sap:quickinfo="Item Number of Purchasing Document"/>
+                <Property Name="mblnr" Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="GRN Number" sap:quickinfo="Number of Material Document"/>
+                <Property Name="mjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="GRN year" sap:quickinfo="Material Document Year"/>
+                <Property Name="ZEILE" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="GRN ITEM" sap:quickinfo="Item in Material Document"/>
+                <Property Name="lifnr" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="Vendor Code" sap:quickinfo="Vendor's account number"/>
+                <Property Name="name1" Type="Edm.String" MaxLength="35" sap:label="Vendor Name" sap:quickinfo="Name 1"/>
+                <Property Name="ekgrp" Type="Edm.String" MaxLength="3" sap:display-format="UpperCase" sap:label="Purchase Group" sap:quickinfo="Purchasing Group"/>
+                <Property Name="badat_pr" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:required-in-filter="true" sap:label="PR Creation Date" sap:quickinfo="Requisition (request) date"/>
+                <Property Name="afnam_pr" Type="Edm.String" MaxLength="12" sap:label="PR Requester Name" sap:quickinfo="Name of requisitioner/requester"/>
+                <Property Name="kostl_pr" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="Cost Center"/>
+                <Property Name="sakto_pr" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="GL Code" sap:quickinfo="G/L Account Number"/>
+                <Property Name="menge_po" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins_po" sap:label="PO Quantity" sap:quickinfo="Purchase Order Quantity"/>
+                <Property Name="meins_po" Type="Edm.String" MaxLength="3" sap:label="PO Uom" sap:quickinfo="Purchase Order Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="werks" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:filter-restriction="multi-value" sap:required-in-filter="true" sap:label="Plant" sap:value-list="standard"/>
+                <Property Name="eindt" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="Delivery Date" sap:quickinfo="Item Delivery Date"/>
+                <Property Name="aedat_po" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="PO Creation Date" sap:quickinfo="Creation Date of Purchasing Document"/>
+                <Property Name="release_date" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="PO Release Date" sap:quickinfo="Release Date of Contract"/>
+                <Property Name="FRGDT" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="PR Release Date" sap:quickinfo="Purchase Requisition Release Date"/>
+                <Property Name="matnr" Type="Edm.String" MaxLength="40" sap:display-format="UpperCase" sap:label="Material Code" sap:quickinfo="Material Number"/>
+                <Property Name="TXZ01" Type="Edm.String" MaxLength="40" sap:label="PR Description" sap:quickinfo="Short Text"/>
+                <Property Name="menge_pr" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins_pr" sap:label="PR Quantity" sap:quickinfo="Purchase requisition quantity"/>
+                <Property Name="meins_pr" Type="Edm.String" MaxLength="3" sap:label="PR Uom" sap:quickinfo="Purchase requisition unit of measure" sap:semantics="unit-of-measure"/>
+                <Property Name="rlwrt_pr" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="waers_pr" sap:label="PR Total Price" sap:quickinfo="Total value at time of release"/>
+                <Property Name="waers_pr" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="Currency" sap:quickinfo="Currency Key" sap:semantics="currency-code"/>
+                <Property Name="preis_pr" Type="Edm.Decimal" Precision="12" Scale="3" sap:unit="waers_pr" sap:label="PR Unit Price" sap:quickinfo="Price in Purchase Requisition"/>
+                <Property Name="gr_date" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="GRN Date" sap:quickinfo="Document Date in Document"/>
+                <Property Name="gr_menge" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="gr_meins" sap:label="GRN Quantity" sap:quickinfo="Quantity"/>
+                <Property Name="gr_meins" Type="Edm.String" MaxLength="3" sap:label="GRN UOM" sap:quickinfo="Base Unit of Measure" sap:semantics="unit-of-measure"/>
+                <Property Name="days_between_pr_po" Type="Edm.Int32" sap:label="Days Between PR &amp; PO"/>
+                <Property Name="pending_qty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins_po" sap:label="Pending Quantity"/>
+            </EntityType>
+            <EntityContainer Name="ZO_MM_PRPOGR_QTY_SRV_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="PRPOGRN_QuantitySet" EntityType="ZO_MM_PRPOGR_QTY_SRV.PRPOGRN_Quantity" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="I_PlantVH" EntityType="ZO_MM_PRPOGR_QTY_SRV.I_PlantVHType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:searchable="true" sap:content-version="1"/>
+                <EntitySet Name="ZI_MM_PO_PR_GRN" EntityType="ZO_MM_PRPOGR_QTY_SRV.ZI_MM_PO_PR_GRNType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:requires-filter="true" sap:content-version="1"/>
+            </EntityContainer>
+            <Annotation
+                xmlns="http://docs.oasis-open.org/odata/ns/edm" Term="Core.SchemaVersion" String="1.0.0"/>
+                <Annotations
+                    xmlns="http://docs.oasis-open.org/odata/ns/edm" Target="ZO_MM_PRPOGR_QTY_SRV.ZI_MM_PO_PR_GRNType/werks">
+                    <Annotation Term="Common.ValueListForValidation" String=""/>
+                    <Annotation Term="Common.ValueList">
+                        <Record>
+                            <PropertyValue Property="Label" String="Plants"/>
+                            <PropertyValue Property="CollectionPath" String="I_PlantVH"/>
+                            <PropertyValue Property="SearchSupported" Bool="true"/>
+                            <PropertyValue Property="Parameters">
+                                <Collection>
+                                    <Record Type="Common.ValueListParameterInOut">
+                                        <PropertyValue Property="LocalDataProperty" PropertyPath="werks"/>
+                                        <PropertyValue Property="ValueListProperty" String="Plant"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="PlantName"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="ValuationArea"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="PlantCustomer"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="PlantSupplier"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="FactoryCalendar"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="DefaultPurchasingOrganization"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="SalesOrganization"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="AddressID"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="PlantCategory"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="DistributionChannel"/>
+                                    </Record>
+                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                        <PropertyValue Property="ValueListProperty" String="Division"/>
+                                    </Record>
+                                </Collection>
+                            </PropertyValue>
+                        </Record>
+                    </Annotation>
+                </Annotations>
+                <Annotations
+                    xmlns="http://docs.oasis-open.org/odata/ns/edm" Target="ZO_MM_PRPOGR_QTY_SRV.ZO_MM_PRPOGR_QTY_SRV_Entities">
+                    <Annotation Term="Common.ApplyMultiUnitBehaviorForSortingAndFiltering" Bool="true"/>
+                </Annotations>
+                <Annotations
+                    xmlns="http://docs.oasis-open.org/odata/ns/edm" Target="ZO_MM_PRPOGR_QTY_SRV.ZO_MM_PRPOGR_QTY_SRV_Entities/ZI_MM_PO_PR_GRN">
+                    <Annotation Term="Capabilities.FilterRestrictions">
+                        <Record>
+                            <PropertyValue Property="RequiresFilter" Bool="true"/>
+                            <PropertyValue Property="RequiredProperties">
+                                <Collection>
+                                    <PropertyPath>badat_pr</PropertyPath>
+                                    <PropertyPath>werks</PropertyPath>
+                                </Collection>
+                            </PropertyValue>
+                            <PropertyValue Property="FilterExpressionRestrictions">
+                                <Collection>
+                                    <Record>
+                                        <PropertyValue Property="Property" PropertyPath="werks"/>
+                                        <PropertyValue Property="AllowedExpressions" String="MultiValue"/>
+                                    </Record>
+                                </Collection>
+                            </PropertyValue>
+                        </Record>
+                    </Annotation>
+                </Annotations>
+                <atom:link
+                    xmlns:atom="http://www.w3.org/2005/Atom" rel="self" href="./sap/ZO_MM_PRPOGR_QTY_SRV/$metadata"/>
+                    <atom:link
+                        xmlns:atom="http://www.w3.org/2005/Atom" rel="latest-version" href="./sap/ZO_MM_PRPOGR_QTY_SRV/$metadata"/>
+                    </Schema>
+                </edmx:DataServices>
+            </edmx:Edmx>

@@ -1,0 +1,165 @@
+<mvc:View controllerName="Z_PR_PO_Report_GC.controller.View1" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core"
+	xmlns:f="sap.f" xmlns:layout="sap.ui.layout" xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data"
+	xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds" displayBlock="true" height="100%">
+	<App>
+		<pages>
+			<Page id="page" showHeader="false" enableScrolling="true" class="prpoPage">
+				<content>
+					<!-- Own shell header: only shown when the app runs outside Fiori Launchpad -->
+					<f:ShellBar id="shellBar" visible="{screen1>/ui/showShellBar}" title="PR / PO / GR / IR Status Dashboard"
+						secondTitle="GreenCell Procurement"/>
+					<VBox class="prpoRoot" width="100%">
+						<!-- Page title -->
+						<VBox class="prpoPageTitle">
+							<Title text="PR / PO / GRN Procurement Dashboard" level="H1" titleStyle="H2"/>
+							<Text text="Compare purchase requisition, purchase order and goods receipt quantities by period." class="prpoSubtitle"/>
+						</VBox>
+						<!-- Messages (validation / errors / info) with optional Retry -->
+						<MessageStrip id="pageMessage" text="" type="Information" showIcon="true" visible="false" class="prpoMessage">
+							<link>
+								<Link text="Retry" visible="{screen1>/canRetry}" press="onRetry"/>
+							</link>
+						</MessageStrip>
+						<!-- Selection Criteria -->
+						<Panel class="prpoCard" expandable="true" expanded="true" backgroundDesign="Solid" accessibleRole="Region">
+							<headerToolbar>
+								<Toolbar class="prpoCardHeader" style="Clear">
+									<core:Icon src="sap-icon://filter" class="prpoCardIcon"/>
+									<Title text="Selection Criteria" level="H2"/>
+								</Toolbar>
+							</headerToolbar>
+							<content>
+								<layout:Grid defaultSpan="XL3 L3 M6 S12" hSpacing="1" vSpacing="0.5" containerQuery="true" class="prpoFilterGrid">
+									<VBox>
+										<Label text="Plant" required="true" labelFor="plantSelect"/>
+										<ComboBox id="plantSelect" width="100%" placeholder="Select plant" selectedKey="{screen1>/selection/plant}" items="{screen1>/plants}"
+											busy="{screen1>/plantsBusy}" busyIndicatorDelay="0" valueState="{screen1>/valueState/plant}" valueStateText="{screen1>/valueText/plant}"
+											selectionChange="onPlantChange" change="onPlantChange">
+											<core:ListItem key="{screen1>Plant}" text="{screen1>Plant} – {screen1>PlantName}"/>
+										</ComboBox>
+									</VBox>
+									<VBox>
+										<Label text="Report Type" required="true" labelFor="reportType"/>
+										<SegmentedButton id="reportType" width="100%" selectedKey="{screen1>/selection/type}" selectionChange="onReportTypeChange">
+											<items>
+												<SegmentedButtonItem key="M" text="Month"/>
+												<SegmentedButtonItem key="Q" text="Quarter"/>
+												<SegmentedButtonItem key="Y" text="Year"/>
+											</items>
+										</SegmentedButton>
+									</VBox>
+									<VBox>
+										<Label text="Year" required="true" labelFor="yearSelect"/>
+										<Select id="yearSelect" width="100%" selectedKey="{screen1>/selection/year}" items="{screen1>/years}"
+											valueState="{screen1>/valueState/year}" valueStateText="{screen1>/valueText/year}" change="onYearChange">
+											<core:Item key="{screen1>key}" text="{screen1>text}"/>
+										</Select>
+									</VBox>
+									<VBox visible="{= ${screen1>/selection/type} !== 'Y' }">
+										<Label text="{screen1>/ui/subPeriodLabel}" required="true" labelFor="subPeriodSelect"/>
+										<Select id="subPeriodSelect" width="100%" selectedKey="{screen1>/selection/subPeriod}" items="{screen1>/subPeriods}"
+											valueState="{screen1>/valueState/subPeriod}" valueStateText="{screen1>/valueText/subPeriod}" change="onSubPeriodChange">
+											<core:Item key="{screen1>key}" text="{screen1>text}"/>
+										</Select>
+									</VBox>
+									<VBox>
+										<Label text="&#160;"/>
+										<HBox class="prpoActions">
+											<Button id="getDataButton" text="Get Data" type="Emphasized" icon="sap-icon://play" enabled="{= !${screen1>/busy} }" press="onGetData"/>
+											<Button id="resetButton" text="Reset" icon="sap-icon://reset" press="onReset" class="sapUiTinyMarginBegin"/>
+										</HBox>
+									</VBox>
+								</layout:Grid>
+							</content>
+						</Panel>
+						<!-- Results area: busy overlay while the summary is loading -->
+						<VBox id="resultArea" class="prpoResultArea" busy="{screen1>/busy}" busyIndicatorDelay="0">
+							<!-- Initial state -->
+							<VBox class="prpoCard prpoEmpty" alignItems="Center" visible="{= !${screen1>/searched} }">
+								<core:Icon src="sap-icon://vertical-bar-chart" size="3rem" class="prpoEmptyIcon"/>
+								<Title text="Ready when you are" level="H3"/>
+								<Text text="Choose plant, report type and period, then select Get Data." textAlign="Center"/>
+							</VBox>
+							<!-- No data state -->
+							<VBox class="prpoCard prpoEmpty" alignItems="Center" visible="{screen1>/showNoData}">
+								<core:Icon src="sap-icon://notification-2" size="3rem" class="prpoEmptyIcon"/>
+								<Title text="No data found" level="H3"/>
+								<Text text="There are no PR / PO / GRN quantities for the selected criteria. Try another plant or period." textAlign="Center"/>
+							</VBox>
+							<!-- Chart card -->
+							<Panel class="prpoCard prpoChartCard" backgroundDesign="Solid" visible="{screen1>/hasData}">
+								<headerToolbar>
+									<Toolbar class="prpoCardHeader" style="Clear">
+										<core:Icon src="sap-icon://vertical-bar-chart" class="prpoCardIcon"/>
+										<Title text="PR / PO / GRN Quantity – Periodic Analysis" level="H2" wrapping="true"/>
+										<ToolbarSpacer/>
+										<ObjectStatus text="{screen1>/contextText}" state="Information" inverted="true" class="prpoContextChip"/>
+									</Toolbar>
+								</headerToolbar>
+								<content>
+									<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
+										selectData="onChartSelect">
+										<viz:dataset>
+											<viz.data:FlattenedDataset data="{screen1>/periods}">
+												<viz.data:dimensions>
+													<viz.data:DimensionDefinition name="Period" value="{screen1>period}"/>
+												</viz.data:dimensions>
+												<viz.data:measures>
+													<viz.data:MeasureDefinition name="PR Quantity" value="{screen1>PRQty}"/>
+													<viz.data:MeasureDefinition name="PO Quantity" value="{screen1>POQty}"/>
+													<viz.data:MeasureDefinition name="GRN Quantity" value="{screen1>GRNQty}"/>
+												</viz.data:measures>
+											</viz.data:FlattenedDataset>
+										</viz:dataset>
+										<viz:feeds>
+											<viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Quantity,PO Quantity,GRN Quantity"/>
+											<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Period"/>
+										</viz:feeds>
+									</viz:VizFrame>
+								</content>
+							</Panel>
+							<!-- Table card -->
+							<Panel class="prpoCard prpoTableCard" backgroundDesign="Solid" visible="{screen1>/hasData}">
+								<headerToolbar>
+									<Toolbar class="prpoCardHeader" style="Clear">
+										<core:Icon src="sap-icon://table-view" class="prpoCardIcon"/>
+										<Title text="Period-wise Quantity" level="H2"/>
+										<ToolbarSpacer/>
+										<ObjectStatus text="{screen1>/selectedPeriod/period}" state="Success" icon="sap-icon://accept" visible="{= !!${screen1>/selectedPeriod} }"/>
+									</Toolbar>
+								</headerToolbar>
+								<content>
+									<Table id="periodTable" items="{screen1>/periods}" mode="SingleSelectLeft" includeItemInSelection="true" selectionChange="onTableSelect"
+										class="prpoTable" noDataText="No periods to display">
+										<columns>
+											<Column><Text text="Period"/></Column>
+											<Column minScreenWidth="Tablet" demandPopin="true"><Text text="From Date"/></Column>
+											<Column minScreenWidth="Tablet" demandPopin="true"><Text text="To Date"/></Column>
+											<Column hAlign="End"><Text text="PR Quantity"/></Column>
+											<Column hAlign="End"><Text text="PO Quantity"/></Column>
+											<Column hAlign="End"><Text text="GRN Quantity"/></Column>
+										</columns>
+										<items>
+											<ColumnListItem>
+												<cells>
+													<ObjectIdentifier title="{screen1>period}"/>
+													<Text text="{screen1>FromText}"/>
+													<Text text="{screen1>ToText}"/>
+													<ObjectNumber number="{path:'screen1>PRQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
+													<ObjectNumber number="{path:'screen1>POQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
+													<ObjectNumber number="{path:'screen1>GRNQty', type:'sap.ui.model.type.Float', formatOptions:{groupingEnabled:true, maxFractionDigits:3}}"/>
+												</cells>
+											</ColumnListItem>
+										</items>
+									</Table>
+									<MessageStrip text="Select a period from the table or the chart to view the detailed PR / PO / GR / IR dashboard." type="Information"
+										showIcon="true" class="prpoTableHint" visible="{= !${screen1>/selectedPeriod} }"/>
+								</content>
+							</Panel>
+						</VBox>
+					</VBox>
+				</content>
+			</Page>
+		</pages>
+	</App>
+</mvc:View>

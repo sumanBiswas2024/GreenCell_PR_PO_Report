@@ -1,0 +1,98 @@
+{
+	"_version": "1.7.0",
+	"sap.app": {
+		"id": "Z_PR_PO_Report_GC",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "1.0.0"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"sourceTemplate": {
+			"id": "servicecatalog.connectivityComponent",
+			"version": "0.0.0"
+		},
+		"dataSources": {
+			"ZO_MM_PRPOGR_QTY_SRV": {
+				"uri": "/sap/opu/odata/sap/ZO_MM_PRPOGR_QTY_SRV/",
+				"type": "OData",
+				"settings": {
+					"odataVersion": "2.0",
+					"localUri": "localService/metadata.xml"
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		},
+		"supportedThemes": [
+			"sap_horizon",
+			"sap_horizon_dark",
+			"sap_fiori_3",
+			"sap_fiori_3_dark",
+			"sap_belize",
+			"sap_hcb"
+		]
+	},
+	"sap.ui5": {
+		"rootView": {
+			"viewName": "Z_PR_PO_Report_GC.view.View1",
+			"type": "XML"
+		},
+		"dependencies": {
+			"minUI5Version": "1.108.56",
+			"libs": {
+				"sap.collaboration": {},
+				"sap.f": {},
+				"sap.m": {},
+				"sap.ui.comp": {},
+				"sap.ui.core": {},
+				"sap.ui.layout": {},
+				"sap.ushell": {},
+				"sap.uxap": {},
+				"sap.viz": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"": {
+				"dataSource": "ZO_MM_PRPOGR_QTY_SRV",
+				"settings": {
+					"defaultBindingMode": "OneWay",
+					"useBatch": true,
+					"defaultCountMode": "Inline"
+				}
+			},
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "Z_PR_PO_Report_GC.i18n.i18n"
+				}
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		}
+	}
+}
