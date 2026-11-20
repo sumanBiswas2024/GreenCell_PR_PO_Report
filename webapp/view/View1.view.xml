@@ -57,10 +57,10 @@
 									</VBox>
 									<VBox class="prpoField prpoFieldPeriod" visible="{= ${screen1>/selection/type} !== 'Y' }">
 										<Label text="{screen1>/ui/subPeriodLabel}" required="true" labelFor="subPeriodSelect"/>
-										<Select id="subPeriodSelect" width="100%" selectedKey="{screen1>/selection/subPeriod}" items="{screen1>/subPeriods}"
-											valueState="{screen1>/valueState/subPeriod}" valueStateText="{screen1>/valueText/subPeriod}" change="onSubPeriodChange">
+										<MultiComboBox id="subPeriodSelect" width="100%" placeholder="Select one or more" selectedKeys="{screen1>/selection/subPeriods}" items="{screen1>/subPeriods}"
+											valueState="{screen1>/valueState/subPeriod}" valueStateText="{screen1>/valueText/subPeriod}" selectionChange="onSubPeriodChange">
 											<core:Item key="{screen1>key}" text="{screen1>text}"/>
-										</Select>
+										</MultiComboBox>
 									</VBox>
 									<HBox class="prpoField prpoFieldActions" renderType="Bare">
 										<Button id="getDataButton" text="Get Data" type="Emphasized" icon="sap-icon://play" enabled="{= !${screen1>/busy} }" press="onGetData"/>

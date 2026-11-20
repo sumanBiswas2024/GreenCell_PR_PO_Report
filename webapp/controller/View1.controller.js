@@ -74,7 +74,7 @@ sap.ui.define([
 					plant: "",
 					type: "M",
 					year: String(currentYear),
-					subPeriod: String(now.getMonth() + 1)
+						subPeriods: []
 				},
 				valueState: {
 					plant: "None",
@@ -258,7 +258,8 @@ sap.ui.define([
 			this._setFieldState("year", "None", "");
 			this._markStale();
 		},
-		onSubPeriodChange: function() {
+		onSubPeriodChange: function(event) {
+			this.getView().getModel("screen1").setProperty("/selection/subPeriods", event.getSource().getSelectedKeys());
 			this._setFieldState("subPeriod", "None", "");
 			this._markStale();
 		},
@@ -276,9 +277,8 @@ sap.ui.define([
 		_updateSubPeriods: function(resetToCurrent) {
 			var vm = this.getView().getModel("screen1");
 			var type = vm.getProperty("/selection/type");
-			var now = new Date();
 			var options = [];
-			var defaultKey = "";
+			var defaultKeys = [];
 			if (type === "M") {
 				options = MONTHS.map(function(text, i) {
 					return {
@@ -286,7 +286,6 @@ sap.ui.define([
 						text: text
 					};
 				});
-				defaultKey = String(now.getMonth() + 1);
 			} else if (type === "Q") {
 				options = QUARTERS.map(function(text, i) {
 					return {
@@ -294,12 +293,11 @@ sap.ui.define([
 						text: text
 					};
 				});
-				defaultKey = String(Math.floor(now.getMonth() / 3) + 1);
 			}
 			vm.setProperty("/subPeriods", options);
-			vm.setProperty("/ui/subPeriodLabel", type === "Q" ? "Quarter" : "Month");
+			vm.setProperty("/ui/subPeriodLabel", type === "Q" ? "Quarters" : "Months");
 			if (resetToCurrent) {
-				vm.setProperty("/selection/subPeriod", defaultKey);
+				vm.setProperty("/selection/subPeriods", defaultKeys);
 			}
 		},
 
@@ -344,11 +342,13 @@ sap.ui.define([
 
 			var periodValid = true;
 			if (typeValid && selection.type !== "Y") {
-				periodValid = (vm.getProperty("/subPeriods") || []).some(function(item) {
-					return item.key === selection.subPeriod;
+				var selectedPeriods = Array.isArray(selection.subPeriods) ? selection.subPeriods : [];
+				var validPeriodKeys = (vm.getProperty("/subPeriods") || []).map(function(item) { return item.key; });
+				periodValid = selectedPeriods.length > 0 && selectedPeriods.every(function(key) {
+					return validPeriodKeys.indexOf(key) !== -1;
 				});
 				if (!periodValid) {
-					var text = selection.type === "M" ? "Month is required for a monthly report." : "Quarter is required for a quarterly report.";
+					var text = selection.type === "M" ? "Select at least one month." : "Select at least one quarter.";
 					errors.push(text);
 					this._setFieldState("subPeriod", "Error", text);
 				} else {
@@ -365,7 +365,7 @@ sap.ui.define([
 				plant: selection.plant,
 				reportType: selection.type,
 				year: selection.year,
-				period: selection.subPeriod
+				periods: selection.subPeriods
 			});
 			if (!valid) {
 				this._showMessage("Please correct the highlighted fields: " + errors.join(" "), "Error", false);
@@ -428,11 +428,17 @@ sap.ui.define([
 				new Filter("TypeofRep", FilterOperator.EQ, params.TypeofRep),
 				new Filter("Year", FilterOperator.EQ, params.Year)
 			];
-			if (params.Month) {
-				filters.push(new Filter("Month", FilterOperator.EQ, params.Month));
+			if (params.Month && params.Month.length) {
+				filters.push(new Filter({
+					filters: params.Month.map(function(month) { return new Filter("Month", FilterOperator.EQ, month); }),
+					and: false
+				}));
 			}
-			if (params.Quarter) {
-				filters.push(new Filter("Quarter", FilterOperator.EQ, params.Quarter));
+			if (params.Quarter && params.Quarter.length) {
+				filters.push(new Filter({
+					filters: params.Quarter.map(function(quarter) { return new Filter("Quarter", FilterOperator.EQ, quarter); }),
+					and: false
+				}));
 			}
 			this._logInfo("Summary request", {
 				entitySet: "PRPOGRN_QuantitySet",
@@ -490,10 +496,14 @@ sap.ui.define([
 				Year: selection.year
 			};
 			if (selection.type === "M") {
-				result.Month = ("0" + selection.subPeriod).slice(-2); // backend returns Month as "06"
+				result.Month = (selection.subPeriods || []).map(function(month) {
+					return ("0" + month).slice(-2); // backend returns Month values such as "06"
+				});
 			}
 			if (selection.type === "Q") {
-				result.Quarter = quarterParameter(selection.subPeriod);
+				result.Quarter = (selection.subPeriods || []).map(function(quarter) {
+					return quarterParameter(quarter);
+				});
 			}
 			return result;
 		},
@@ -506,9 +516,9 @@ sap.ui.define([
 			var plantText = plant ? plant.Plant + " – " + plant.PlantName : selection.plant;
 			var period = selection.year;
 			if (selection.type === "M") {
-				period = MONTHS[parseInt(selection.subPeriod, 10) - 1] + " " + selection.year;
+				period = (selection.subPeriods || []).map(function(month) { return MONTHS_SHORT[parseInt(month, 10) - 1]; }).join(", ") + " " + selection.year;
 			} else if (selection.type === "Q") {
-				period = "Q" + selection.subPeriod + " " + selection.year;
+				period = (selection.subPeriods || []).map(function(quarter) { return "Q" + quarter; }).join(", ") + " " + selection.year;
 			}
 			return plantText + "  |  " + period;
 		},
@@ -813,7 +823,7 @@ sap.ui.define([
 				plant: "",
 				type: "M",
 				year: String(now.getFullYear()),
-				subPeriod: String(now.getMonth() + 1)
+				subPeriods: []
 			});
 			this._clearPeriodSelection();
 			vm.setProperty("/periods", []);
