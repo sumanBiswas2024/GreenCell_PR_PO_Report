@@ -5,9 +5,14 @@ sap.ui.define([
 	"sap/ui/model/FilterOperator",
 	"sap/m/SelectDialog",
 	"sap/m/StandardListItem",
+	"sap/m/Popover",
+	"sap/m/HBox",
+	"sap/m/Label",
+	"sap/m/Switch",
+	"sap/viz/ui5/controls/Popover",
 	"sap/ui/Device",
 	"sap/ui/model/type/Float" // preload only: used as a type in View1.view.xml (avoids a sync load)
-], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, Device) {
+], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, Popover, HBox, Label, Switch, VizPopover, Device) {
 	"use strict";
 
 	var DEBUG = true;
@@ -44,8 +49,9 @@ sap.ui.define([
 			this._requestSerial = 0;
 			this._retryAction = null;
 
-			// Chart sits in the left half of the analysis panel, so keep it compact
-			var chartHeight = Device.system.phone ? "18rem" : (Device.system.tablet ? "20rem" : "22rem");
+			// Reserve space for ChartContainer's toolbar while keeping the split section height fixed.
+			var chartHeight = Device.system.phone ? "14rem" : (Device.system.tablet ? "16rem" : "18rem");
+			var tableHeight = Device.system.phone ? "18rem" : (Device.system.tablet ? "20rem" : "22rem");
 
 			this._logInfo("Initialization", {
 				ui5Version: sap.ui.version,
@@ -85,6 +91,7 @@ sap.ui.define([
 				},
 				ui: {
 					chartHeight: chartHeight,
+					tableHeight: tableHeight,
 					subPeriodLabel: "Month"
 				}
 			}), "screen1");
@@ -102,6 +109,49 @@ sap.ui.define([
 					this._showMessage("The service metadata could not be loaded. Check the service and your connection.", "Error", false);
 				}.bind(this));
 			}
+		},
+
+		onAfterRendering: function() {
+			if (this._vizPopover) {
+				return;
+			}
+			var chart = this.byId("quantityChart");
+			if (!chart) {
+				return;
+			}
+			this._vizPopover = new VizPopover();
+			this._vizPopover.connect(chart.getVizUid());
+			this.getView().addDependent(this._vizPopover);
+		},
+
+		onChartPersonalization: function(event) {
+			var chart = this.byId("quantityChart");
+			if (!this._chartOptionsPopover) {
+				var dataLabelsSwitch = new Switch({
+					state: true,
+					change: function(changeEvent) {
+						chart.setVizProperties({ plotArea: { dataLabel: { visible: changeEvent.getParameter("state") } } });
+					}
+				});
+				var legendSwitch = new Switch({
+					state: true,
+					change: function(changeEvent) {
+						chart.setVizProperties({ legend: { visible: changeEvent.getParameter("state") } });
+					}
+				});
+				this._chartOptionsPopover = new Popover({
+					title: "Chart options",
+					placement: "Bottom",
+					contentWidth: "15rem",
+					content: [
+						new HBox({ alignItems: "Center", justifyContent: "SpaceBetween", items: [new Label({ text: "Data labels" }), dataLabelsSwitch] }),
+						new HBox({ alignItems: "Center", justifyContent: "SpaceBetween", items: [new Label({ text: "Legend" }), legendSwitch] })
+					]
+				});
+				this._chartOptionsPopover.addStyleClass("prpoChartOptionsPopover");
+				this.getView().addDependent(this._chartOptionsPopover);
+			}
+			this._chartOptionsPopover.openBy(event.getSource());
 		},
 
 		/* =========================================================== */
@@ -208,9 +258,32 @@ sap.ui.define([
 		/* =========================================================== */
 		/* Selection criteria                                          */
 		/* =========================================================== */
-		onPlantChange: function() {
+		onPlantChange: function(event) {
+			var input = event.getSource();
+			var plant = String(input.getValue() || "").trim().toUpperCase();
+			input.setValue(plant);
+			this.getView().getModel("screen1").setProperty("/selection/plant", plant);
+			var known = (this.getView().getModel("screen1").getProperty("/plants") || []).some(function(item) {
+				return item.Plant === plant;
+			});
+			if (plant && !known) {
+				this._setFieldState("plant", "Error", "Enter a valid plant code or select one from value help.");
+			} else {
+				this._setFieldState("plant", "None", "");
+			}
+			this._markStale();
+		},
+		onPlantSuggestionSelected: function(event) {
+			var item = event.getParameter("selectedItem");
+			if (!item) {
+				return;
+			}
+			var plant = item.getKey();
+			event.getSource().setValue(plant);
+			this.getView().getModel("screen1").setProperty("/selection/plant", plant);
 			this._setFieldState("plant", "None", "");
 			this._markStale();
+			this._logInfo("Plant suggestion selected", { Plant: plant });
 		},
 		onYearChange: function() {
 			this._setFieldState("year", "None", "");
@@ -378,7 +451,7 @@ sap.ui.define([
 			vm.setProperty("/showNoData", false);
 			vm.setProperty("/hasError", false);
 			vm.setProperty("/periods", []);
-			vm.setProperty("/selectedPeriod", null);
+			this._clearPeriodSelection();
 			this._setBusy(true);
 
 			var filters = [
@@ -689,6 +762,26 @@ sap.ui.define([
 			// Hook for the detailed dashboard (next step): use item.Werks, item.FromDate, item.ToDate.
 		},
 
+		_clearPeriodSelection: function() {
+			var vm = this.getView().getModel("screen1");
+			vm.setProperty("/selectedPeriod", null);
+			this._syncing = true;
+			try {
+				var table = this.byId("periodTable");
+				if (table) {
+					table.removeSelections(true);
+				}
+				var chart = this.byId("quantityChart");
+				if (chart) {
+					chart.vizSelection([], { clearSelection: true });
+				}
+			} catch (error) {
+				this._logWarn("Could not clear prior period selection", error);
+			} finally {
+				this._syncing = false;
+			}
+		},
+
 		_selectTableRow: function(periodId) {
 			var table = this.byId("periodTable");
 			table.getItems().some(function(row) {
@@ -728,12 +821,12 @@ sap.ui.define([
 				year: String(now.getFullYear()),
 				subPeriod: String(now.getMonth() + 1)
 			});
+			this._clearPeriodSelection();
 			vm.setProperty("/periods", []);
 			vm.setProperty("/searched", false);
 			vm.setProperty("/hasData", false);
 			vm.setProperty("/showNoData", false);
 			vm.setProperty("/hasError", false);
-			vm.setProperty("/selectedPeriod", null);
 			vm.setProperty("/contextText", "");
 			["plant", "year", "subPeriod"].forEach(function(field) {
 				this._setFieldState(field, "None", "");

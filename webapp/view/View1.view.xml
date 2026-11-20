@@ -1,5 +1,6 @@
 <mvc:View controllerName="Z_PR_PO_Report_GC.controller.View1" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core"
-	xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data" xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds" displayBlock="true"
+	xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data" xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+	xmlns:cc="sap.suite.ui.commons" displayBlock="true"
 	height="100%">
 	<App>
 		<pages>
@@ -29,9 +30,14 @@
 								<HBox class="prpoFilterBar" wrap="Wrap" renderType="Bare" alignItems="End">
 									<VBox class="prpoField prpoFieldPlant">
 										<Label text="Plant" required="true" labelFor="plantSelect"/>
-										<Input id="plantSelect" width="100%" placeholder="Select plant" value="{screen1>/selection/plant}" showValueHelp="true" valueHelpOnly="true"
-											valueHelpRequest="onPlantValueHelp" busy="{screen1>/plantsBusy}" busyIndicatorDelay="0" valueState="{screen1>/valueState/plant}"
-											valueStateText="{screen1>/valueText/plant}" change="onPlantChange"/>
+										<Input id="plantSelect" width="100%" placeholder="Enter plant code or use value help" value="{screen1>/selection/plant}" showValueHelp="true"
+							showSuggestion="true" filterSuggests="true" startSuggestion="1" suggestionItemSelected="onPlantSuggestionSelected"
+							valueHelpRequest="onPlantValueHelp" busy="{screen1>/plantsBusy}" busyIndicatorDelay="0" valueState="{screen1>/valueState/plant}"
+												valueStateText="{screen1>/valueText/plant}" change="onPlantChange">
+												<suggestionItems>
+													<core:Item key="{screen1>Plant}" text="{= ${screen1>Plant} + ' – ' + ${screen1>PlantName} }"/>
+												</suggestionItems>
+						</Input>
 									</VBox>
 									<VBox class="prpoField prpoFieldType">
 										<Label text="Report Type" required="true" labelFor="reportType"/>
@@ -94,8 +100,13 @@
 										<!-- LEFT 50%: chart -->
 										<VBox class="prpoSplitCol prpoChartCol">
 											<Title text="PR / PO / GRN Quantity" level="H3" class="prpoSectionTitle"/>
-											<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
-												selectData="onChartSelect">
+											<cc:ChartContainer id="chartContainer" class="prpoChartContainer" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+												showPersonalization="true" showLegend="true" showLegendButton="false" personalizationPress="onChartPersonalization">
+												<cc:content>
+													<cc:ChartContainerContent icon="sap-icon://vertical-bar-chart" title="PR / PO / GRN quantities">
+														<cc:content>
+															<viz:VizFrame id="quantityChart" vizType="column" width="100%" height="{screen1>/ui/chartHeight}" uiConfig="{applicationSet:'fiori'}"
+																selectData="onChartSelect">
 												<viz:dataset>
 													<viz.data:FlattenedDataset data="{screen1>/periods}">
 														<viz.data:dimensions>
@@ -112,12 +123,16 @@
 													<viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Quantity,PO Quantity,GRN Quantity"/>
 													<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Period"/>
 												</viz:feeds>
-											</viz:VizFrame>
+															</viz:VizFrame>
+													</cc:content>
+												</cc:ChartContainerContent>
+											</cc:content>
+										</cc:ChartContainer>
 										</VBox>
 										<!-- RIGHT 50%: table -->
 										<VBox class="prpoSplitCol prpoTableCol">
 											<Title text="Period-wise Quantity" level="H3" class="prpoSectionTitle"/>
-											<ScrollContainer id="periodTableScroll" width="100%" height="{screen1>/ui/chartHeight}" vertical="true" horizontal="false" focusable="true" class="prpoTableScroll">
+											<ScrollContainer id="periodTableScroll" width="100%" height="{screen1>/ui/tableHeight}" vertical="true" horizontal="false" focusable="true" class="prpoTableScroll">
 											<Table id="periodTable" items="{screen1>/periods}" mode="SingleSelectLeft" includeItemInSelection="true" selectionChange="onTableSelect"
 												class="prpoTable" noDataText="No periods to display" growing="false">
 												<columns>
