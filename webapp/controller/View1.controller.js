@@ -708,6 +708,7 @@ sap.ui.define([
 				}.bind(this)).join(" / ");
 				return copy;
 			}.bind(this));
+			// KPI and chart formulas use one record per PR item, so repeated GR rows do not inflate totals.
 			var lines = this._aggregateDetailPRLines(rows);
 			var statusByPRLine = {};
 			lines.forEach(function(line) {
@@ -743,12 +744,15 @@ sap.ui.define([
 				valueWarnings.push("Some open PR lines have no unit price and are excluded from Value Pending PO.");
 			}
 			var valueWarning = valueWarnings.join(" ");
+			// Convert rupees to lakhs for monetary charts; retain the source unit if currency is unknown.
 			var valueScale = singleCurrency ? 100000 : 1;
 			var valueUnit = singleCurrency ? (singleCurrency === "INR" ? "₹ Lakh" : singleCurrency + " Lakh") : "";
 			var monthlyValue = singleCurrency ? this._buildMonthlyValueByStatus(lines, singleCurrency, valueScale) : [];
 			var topVendors = singleCurrency ? this._buildTopVendors(lines, singleCurrency, valueScale) : [];
+			// Sum PR item values and open-PO pending values only for a single known currency.
 			var totalPRValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, false) : null;
 			var pendingPOValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, true) : null;
+			// Count blank-PO items; PO Coverage follows the requested definition as the share without a PO.
 			var noPOCount = lines.filter(function(line) {
 				return line.POBlank;
 			}).length;
@@ -758,6 +762,7 @@ sap.ui.define([
 			var fullyReceivedCount = lines.filter(function(line) {
 				return !line.POBlank && line.PendingQtyValue === 0;
 			}).length;
+			// PO Coverage (%) = PR items with blank PO / all distinct PR items × 100.
 			var noPORate = lines.length ? (noPOCount / lines.length) * 100 : 0;
 			var kpis = [
 				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length),
@@ -807,6 +812,7 @@ sap.ui.define([
 					byKey[row.PRLineKey] = line;
 					lines.push(line);
 				}
+				// Add each goods-receipt document item once, even if the backend repeats it.
 				var grKey = [row.mblnr, row.mjahr, row.ZEILE].join("|");
 				if (this._isBlank(row.mblnr) && this._isBlank(row.mjahr)) {
 					grKey += row._rowIndex;
@@ -825,6 +831,7 @@ sap.ui.define([
 		},
 
 		_detailStatus: function(line) {
+			// Classify each PR item from PO presence, pending quantity, and received quantity.
 			if (line.POBlank) {
 				return "No PO Yet";
 			}
@@ -857,6 +864,7 @@ sap.ui.define([
 		},
 
 		_buildProcurementPipeline: function(lines) {
+			// Pipeline counts distinct PR items by status; PO-Awaiting GR and IR are omitted from this chart.
 			var includedStatuses = ["No PO Yet", "PO-GR Partial", "Fully Received", "Over-Received"];
 			return includedStatuses.map(function(status) {
 				return {
@@ -869,6 +877,7 @@ sap.ui.define([
 		},
 
 		_buildLeadTimeDistribution: function(lines) {
+			// Count PO-backed PR items into non-overlapping PR-to-PO day ranges.
 			var buckets = [{
 				Bucket: "0–3 days",
 				Min: 0,
@@ -915,6 +924,7 @@ sap.ui.define([
 		},
 
 		_buildMonthlyValueByStatus: function(lines, currency, valueScale) {
+			// Sum PR value by PR creation month and status, converting each amount to lakhs.
 			var byMonth = {};
 			lines.forEach(function(line) {
 				if (!line.BadatText || !line.Currency || line.Currency !== currency || line.PRValue === null) {
@@ -953,6 +963,7 @@ sap.ui.define([
 		},
 
 		_buildTopVendors: function(lines, currency, valueScale) {
+			// Rank vendors by summed PR item value in lakhs, then keep the top ten.
 			var vendors = {};
 			lines.forEach(function(line) {
 				if (!line.Currency || line.Currency !== currency || line.PRValue === null) {
@@ -976,6 +987,7 @@ sap.ui.define([
 		},
 
 		_sumLineValues: function(lines, currency, pendingOnly) {
+			// Total PR Value sums item values; Value Pending PO sums pending quantity × unit price for open PO items.
 			var total = 0;
 			lines.forEach(function(line) {
 				if (pendingOnly) {
@@ -990,6 +1002,7 @@ sap.ui.define([
 		},
 
 		_calculateValuePendingPO: function(line) {
+			// Pending PO value = positive pending quantity × unit price; invalid or non-open items contribute zero.
 			if (line.POBlank || line.PendingQtyValue === null || line.PendingQtyValue <= 0 || line.UnitPriceValue === null) {
 				return 0;
 			}
@@ -1028,6 +1041,7 @@ sap.ui.define([
 			if (value === null || value === undefined) {
 				return "";
 			}
+			// Display backend currency amounts in lakhs (1 lakh = 100,000 currency units).
 			var lakhs = (value / 100000).toFixed(precision === undefined ? 2 : precision);
 			return (currency === "INR" ? "₹" : (currency ? currency + " " : "")) + lakhs + " L";
 		},
@@ -1036,6 +1050,7 @@ sap.ui.define([
 			if (!currency || value === null || value === undefined) {
 				return "—";
 			}
+			// KPI currency formula: source amount ÷ 100,000, rounded for readable lakh display.
 			var lakhValue = value / 100000;
 			var precision = Math.abs(lakhValue) < 0.1 && lakhValue !== 0 ? 4 : 2;
 			var lakhs = lakhValue.toFixed(precision);
