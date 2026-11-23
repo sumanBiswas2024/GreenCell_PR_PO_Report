@@ -28,11 +28,12 @@
     "resourceModelName": "i18n"
   },
   "build": {
-    "buildRequired": true,
+    "buildRequired": false,
     "sourceFolder": "webapp",
     "targetFolder": "dist",
     "excludedFolders": [],
-    "excludedFiles": []
+    "excludedFiles": [],
+    "lastBuildDateTime": "Mon, 23 Nov 2026 06:47:45 GMT"
   },
   "basevalidator": {
     "services": {
@@ -52,5 +53,9 @@
     "loadJSONFiles": false,
     "loadCustomRequests": false,
     "mockRequestsFilePath": ""
+  },
+  "deploy": {
+    "destination": "GreenCell",
+    "name": "ZBSP_PR_PO"
   }
 }
