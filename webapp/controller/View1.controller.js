@@ -1340,9 +1340,29 @@ sap.ui.define([
 				};
 			};
 			var pipelineProperties = propertiesWithPalette(["#f04b50", "#1680f5", "#14a65a"]);
-			pipelineProperties.legend = {
-				visible: true,
-				position: "bottom"
+			pipelineProperties.plotArea.dataPointStyle = {
+				rules: [{
+					dataContext: {
+						Status: "No PO Yet"
+					},
+					properties: {
+						color: "#f04b50"
+					}
+				}, {
+					dataContext: {
+						Status: "PO-GR Partial"
+					},
+					properties: {
+						color: "#1680f5"
+					}
+				}, {
+					dataContext: {
+						Status: "Fully Received"
+					},
+					properties: {
+						color: "#14a65a"
+					}
+				}]
 			};
 			pipeline.setVizProperties(pipelineProperties);
 			leadTime.setVizProperties(propertiesWithPalette(["#7c3aed"]));
