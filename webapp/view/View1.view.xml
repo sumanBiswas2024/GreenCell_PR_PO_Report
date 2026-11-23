@@ -245,12 +245,12 @@
 													<core:Icon src="sap-icon://history"/>
 													<Title text="PR – PO Lead Time (Days)" level="H3"/>
 												</HBox>
-								<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+												<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="23rem" autoAdjustHeight="false" showFullScreen="true" showZoom="true"
 													showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://history" title="PR – PO Lead Time (Days)">
 															<cc:content>
-										<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+													<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="19rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/leadTime}">
@@ -273,8 +273,22 @@
 													<core:Icon src="sap-icon://bar-chart"/>
 													<Title text="{detail>/monthlyChartTitle}" level="H3"/>
 												</HBox>
+												<HBox class="prpoDetailLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendNoPO"/>
+														<Text text="No PO Yet"/>
+													</HBox>
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendPartial"/>
+														<Text text="PO – GR Partial"/>
+													</HBox>
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendReceived"/>
+														<Text text="Fully Received"/>
+													</HBox>
+												</HBox>
 								<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
-													showZoom="true" showPersonalization="false" showLegend="true" showLegendButton="false">
+													showZoom="true" showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
 															<cc:content>
@@ -326,62 +340,62 @@
 												</cc:ChartContainer>
 											</VBox>
 										</HBox>
-										<Title text="PR / PO / GR Detail Lines" level="H3" class="prpoDetailTableTitle"/>
-										<ScrollContainer id="detailsTableScroll" width="100%" height="23rem" horizontal="true" vertical="true" focusable="true"
-											class="prpoDetailsTableScroll">
-											<Table id="detailsTable" items="{detail>/rows}" width="213rem" growing="false" class="prpoDetailsTable" noDataText="No details to display">
-												<columns>
-													<Column width="9rem"><Text text="PR Number / Item"/></Column>
-													<Column width="8rem"><Text text="PR Date"/></Column>
-													<Column width="8rem"><Text text="PR Release Date"/></Column>
-													<Column width="10rem"><Text text="Requester"/></Column>
-													<Column width="15rem"><Text text="Vendor"/></Column>
-													<Column width="22rem"><Text text="PR Description"/></Column>
-													<Column width="12rem"><Text text="Material"/></Column>
-													<Column width="9rem"><Text text="PO Number / Item"/></Column>
-													<Column width="11rem"><Text text="Status"/></Column>
-													<Column width="8rem"><Text text="PO Created"/></Column>
-													<Column width="8rem"><Text text="PO Release"/></Column>
-													<Column width="8rem"><Text text="Delivery Date"/></Column>
-													<Column width="8rem"><Text text="PR Quantity"/></Column>
-													<Column width="8rem"><Text text="PO Quantity"/></Column>
-													<Column width="8rem"><Text text="GR Quantity"/></Column>
-													<Column width="8rem"><Text text="Pending Quantity"/></Column>
-													<Column width="12rem"><Text text="PR Unit Price (Lakh)"/></Column>
-													<Column width="13rem"><Text text="PR Total Value (Lakh)"/></Column>
-													<Column width="11rem"><Text text="GR Document"/></Column>
-													<Column width="8rem"><Text text="GR Date"/></Column>
-													<Column width="9rem"><Text text="PR – PO Days"/></Column>
-												</columns>
-												<items>
-													<ColumnListItem>
-														<cells>
-															<ObjectIdentifier title="{detail>banfn}" text="{detail>bnfpo}"/>
-															<Text text="{detail>BadatText}"/>
-															<Text text="{detail>PRReleaseText}"/>
-															<Text text="{detail>afnam_pr}"/>
-															<ObjectIdentifier title="{detail>name1}" text="{detail>lifnr}"/>
-															<Text text="{detail>TXZ01}" wrapping="false"/>
-															<Text text="{detail>matnr}"/>
-															<ObjectIdentifier title="{detail>ebeln}" text="{detail>ebelp}"/>
-															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="true"/>
-															<Text text="{detail>PODateText}"/>
-															<Text text="{detail>POReleaseText}"/>
-															<Text text="{detail>DeliveryText}"/>
-															<Text text="{detail>PRQtyText}"/>
-															<Text text="{detail>POQtyText}"/>
-															<Text text="{detail>GRQtyText}"/>
-															<Text text="{detail>PendingQtyText}"/>
-															<Text text="{detail>PRUnitPriceText}"/>
-															<Text text="{detail>PRTotalValueText}"/>
-															<ObjectIdentifier title="{detail>mblnr}" text="{detail>GRDocItemText}"/>
-															<Text text="{detail>GRDateText}"/>
-															<Text text="{detail>days_between_pr_po}"/>
-														</cells>
-													</ColumnListItem>
-												</items>
-											</Table>
-										</ScrollContainer>
+										<!--<Title text="PR / PO / GR Detail Lines" level="H3" class="prpoDetailTableTitle"/>-->
+										<!--<ScrollContainer id="detailsTableScroll" width="100%" height="23rem" horizontal="true" vertical="true" focusable="true"-->
+										<!--	class="prpoDetailsTableScroll">-->
+										<!--	<Table id="detailsTable" items="{detail>/rows}" width="213rem" growing="false" class="prpoDetailsTable" noDataText="No details to display">-->
+										<!--		<columns>-->
+										<!--			<Column width="9rem"><Text text="PR Number / Item"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PR Date"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PR Release Date"/></Column>-->
+										<!--			<Column width="10rem"><Text text="Requester"/></Column>-->
+										<!--			<Column width="15rem"><Text text="Vendor"/></Column>-->
+										<!--			<Column width="22rem"><Text text="PR Description"/></Column>-->
+										<!--			<Column width="12rem"><Text text="Material"/></Column>-->
+										<!--			<Column width="9rem"><Text text="PO Number / Item"/></Column>-->
+										<!--			<Column width="11rem"><Text text="Status"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PO Created"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PO Release"/></Column>-->
+										<!--			<Column width="8rem"><Text text="Delivery Date"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PR Quantity"/></Column>-->
+										<!--			<Column width="8rem"><Text text="PO Quantity"/></Column>-->
+										<!--			<Column width="8rem"><Text text="GR Quantity"/></Column>-->
+										<!--			<Column width="8rem"><Text text="Pending Quantity"/></Column>-->
+										<!--			<Column width="12rem"><Text text="PR Unit Price (Lakh)"/></Column>-->
+										<!--			<Column width="13rem"><Text text="PR Total Value (Lakh)"/></Column>-->
+										<!--			<Column width="11rem"><Text text="GR Document"/></Column>-->
+										<!--			<Column width="8rem"><Text text="GR Date"/></Column>-->
+										<!--			<Column width="9rem"><Text text="PR – PO Days"/></Column>-->
+										<!--		</columns>-->
+										<!--		<items>-->
+										<!--			<ColumnListItem>-->
+										<!--				<cells>-->
+										<!--					<ObjectIdentifier title="{detail>banfn}" text="{detail>bnfpo}"/>-->
+										<!--					<Text text="{detail>BadatText}"/>-->
+										<!--					<Text text="{detail>PRReleaseText}"/>-->
+										<!--					<Text text="{detail>afnam_pr}"/>-->
+										<!--					<ObjectIdentifier title="{detail>name1}" text="{detail>lifnr}"/>-->
+										<!--					<Text text="{detail>TXZ01}" wrapping="false"/>-->
+										<!--					<Text text="{detail>matnr}"/>-->
+										<!--					<ObjectIdentifier title="{detail>ebeln}" text="{detail>ebelp}"/>-->
+										<!--					<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="true"/>-->
+										<!--					<Text text="{detail>PODateText}"/>-->
+										<!--					<Text text="{detail>POReleaseText}"/>-->
+										<!--					<Text text="{detail>DeliveryText}"/>-->
+										<!--					<Text text="{detail>PRQtyText}"/>-->
+										<!--					<Text text="{detail>POQtyText}"/>-->
+										<!--					<Text text="{detail>GRQtyText}"/>-->
+										<!--					<Text text="{detail>PendingQtyText}"/>-->
+										<!--					<Text text="{detail>PRUnitPriceText}"/>-->
+										<!--					<Text text="{detail>PRTotalValueText}"/>-->
+										<!--					<ObjectIdentifier title="{detail>mblnr}" text="{detail>GRDocItemText}"/>-->
+										<!--					<Text text="{detail>GRDateText}"/>-->
+										<!--					<Text text="{detail>days_between_pr_po}"/>-->
+										<!--				</cells>-->
+										<!--			</ColumnListItem>-->
+										<!--		</items>-->
+										<!--	</Table>-->
+										<!--</ScrollContainer>-->
 									</VBox>
 								</VBox>
 							</content>

@@ -555,6 +555,18 @@ sap.ui.define([
 			return plantText + "  |  " + period;
 		},
 
+		_buildDetailContextText: function(period) {
+			var plants = this.getView().getModel("screen1").getProperty("/plants") || [];
+			var plant = plants.filter(function(item) {
+				return item.Plant === period.Werks;
+			})[0];
+			var plantText = period.Werks || "";
+			if (plant && plant.PlantName) {
+				plantText += " – " + plant.PlantName;
+			}
+			return plantText + "  |  " + (period.period || "");
+		},
+
 		_loadDetailsForPeriod: function(period) {
 			var detailModel = this.getView().getModel("detail");
 			var serviceModel = this.getOwnerComponent().getModel();
@@ -571,7 +583,7 @@ sap.ui.define([
 			this._detailRetryPeriod = period;
 			detailModel.setData({
 				selectedPeriod: period,
-				contextText: period.period + "  |  " + (period.Werks || ""),
+				contextText: this._buildDetailContextText(period),
 				busy: true,
 				hasData: false,
 				noData: false,
@@ -910,32 +922,32 @@ sap.ui.define([
 		_buildLeadTimeDistribution: function(lines) {
 			// Count PO-backed PR items into non-overlapping PR-to-PO day ranges.
 			var buckets = [{
-				Bucket: "0–3 days",
+				Bucket: "0–3 d",
 				Min: 0,
 				Max: 3,
 				PRLines: 0
 			}, {
-				Bucket: "4–7 days",
+				Bucket: "4–7 d",
 				Min: 4,
 				Max: 7,
 				PRLines: 0
 			}, {
-				Bucket: "8–15 days",
+				Bucket: "8–15 d",
 				Min: 8,
 				Max: 15,
 				PRLines: 0
 			}, {
-				Bucket: "16–30 days",
+				Bucket: "16–30 d",
 				Min: 16,
 				Max: 30,
 				PRLines: 0
 			}, {
-				Bucket: "31–60 days",
+				Bucket: "31–60 d",
 				Min: 31,
 				Max: 60,
 				PRLines: 0
 			}, {
-				Bucket: "60+ days",
+				Bucket: "60+ d",
 				Min: 61,
 				Max: Number.MAX_VALUE,
 				PRLines: 0
@@ -1377,8 +1389,7 @@ sap.ui.define([
 					}
 				},
 				legend: {
-					visible: true,
-					position: "top"
+					visible: false
 				},
 				interaction: {
 					selectability: {

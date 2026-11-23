@@ -192,6 +192,20 @@
 	font-weight: 700;
 }
 
+.prpoDetailLegend {
+	gap: 0.9rem;
+	min-height: 1.45rem;
+	margin: 0 0 0.15rem;
+	color: #26384f;
+	font-size: 0.72rem;
+}
+
+.prpoDetailLegendItem { gap: 0.25rem; }
+.prpoDetailLegendSwatch { font-size: 0.62rem; }
+.prpoDetailLegendNoPO { color: #f04b50; }
+.prpoDetailLegendPartial { color: #1680f5; }
+.prpoDetailLegendReceived { color: #14a65a; }
+
 .prpoDetailChartCard .sapSuiteUiCommonsChartContainer {
 	width: 100%;
 	max-width: 100%;
