@@ -608,10 +608,20 @@ sap.ui.define([
 				return;
 			}
 
+			// Build UTC-midnight values so OData serialization does not shift dates to the previous day in IST.
+			var fromDate = new Date(Date.UTC(fromParts.y, fromParts.m - 1, fromParts.d));
+			var toDate = new Date(Date.UTC(toParts.y, toParts.m - 1, toParts.d));
+			// Keep both bounds on badat_pr as an AND range; same-property filters otherwise default to OR.
+			var dateRangeFilter = new Filter({
+				filters: [
+					new Filter("badat_pr", FilterOperator.GE, fromDate),
+					new Filter("badat_pr", FilterOperator.LE, toDate)
+				],
+				and: true
+			});
 			var filters = [
 				new Filter("werks", FilterOperator.EQ, period.Werks),
-				new Filter("badat_pr", FilterOperator.GE, new Date(fromParts.y, fromParts.m - 1, fromParts.d)),
-				new Filter("badat_pr", FilterOperator.LE, new Date(toParts.y, toParts.m - 1, toParts.d))
+				dateRangeFilter
 			];
 			this._logInfo("Detail dashboard request", {
 				entitySet: "/ZI_MM_PO_PR_GRN",

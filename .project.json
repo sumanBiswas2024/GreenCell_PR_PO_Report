@@ -28,12 +28,12 @@
     "resourceModelName": "i18n"
   },
   "build": {
-    "buildRequired": true,
+    "buildRequired": false,
     "sourceFolder": "webapp",
     "targetFolder": "dist",
     "excludedFolders": [],
     "excludedFiles": [],
-    "lastBuildDateTime": "Mon, 23 Nov 2026 06:47:45 GMT"
+    "lastBuildDateTime": "Mon, 23 Nov 2026 11:01:50 GMT"
   },
   "basevalidator": {
     "services": {
