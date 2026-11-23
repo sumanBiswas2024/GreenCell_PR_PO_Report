@@ -1340,32 +1340,12 @@ sap.ui.define([
 				};
 			};
 			var pipelineProperties = propertiesWithPalette(["#f04b50", "#1680f5", "#14a65a"]);
-			pipelineProperties.plotArea.dataPointStyle = {
-				rules: [{
-					dataContext: {
-						Status: "No PO Yet"
-					},
-					properties: {
-						color: "#f04b50"
-					}
-				}, {
-					dataContext: {
-						Status: "PO-GR Partial"
-					},
-					properties: {
-						color: "#1680f5"
-					}
-				}, {
-					dataContext: {
-						Status: "Fully Received"
-					},
-					properties: {
-						color: "#14a65a"
-					}
-				}]
+			pipelineProperties.legend = {
+				visible: true,
+				position: "bottom"
 			};
 			pipeline.setVizProperties(pipelineProperties);
-			leadTime.setVizProperties(propertiesWithPalette(["#087df5"]));
+			leadTime.setVizProperties(propertiesWithPalette(["#7c3aed"]));
 			var topVendorsProperties = propertiesWithPalette(["#087df5"]);
 			topVendorsProperties.plotArea.dataLabel.formatString = "#,##0.0###";
 			topVendorsProperties.valueAxis.label.formatString = "#,##0.0###";
@@ -1375,7 +1355,7 @@ sap.ui.define([
 					visible: false
 				},
 				plotArea: {
-					colorPalette: ["#f04b50", "#1680f5", "#14a65a"],
+					colorPalette: ["#d55e00", "#e69f00", "#cc79a7"],
 					dataLabel: {
 						visible: true,
 						hideWhenOverlap: false,

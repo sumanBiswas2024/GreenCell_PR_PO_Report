@@ -219,12 +219,12 @@
 													<core:Icon src="sap-icon://process"/>
 													<Title text="Procurement Pipeline (PR Lines)" level="H3"/>
 												</HBox>
-								<cc:ChartContainer id="detailPipelineContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
-													showPersonalization="false" showLegend="false" showLegendButton="false">
+												<cc:ChartContainer id="detailPipelineContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+													showPersonalization="false" showLegend="true" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://process" title="Procurement Pipeline (PR Lines)">
 															<cc:content>
-										<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+													<viz:VizFrame id="detailPipelineChart" vizType="pie" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/pipeline}">
@@ -232,8 +232,8 @@
 																			<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
 																		</viz.data:FlattenedDataset>
 																	</viz:dataset>
-																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
-																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Status"/></viz:feeds>
+															<viz:feeds><viz.feeds:FeedItem uid="size" type="Measure" values="PR Lines"/>
+															<viz.feeds:FeedItem uid="color" type="Dimension" values="Status"/></viz:feeds>
 																</viz:VizFrame>
 															</cc:content>
 														</cc:ChartContainerContent>
@@ -273,26 +273,12 @@
 													<core:Icon src="sap-icon://bar-chart"/>
 													<Title text="{detail>/monthlyChartTitle}" level="H3"/>
 												</HBox>
-												<HBox class="prpoDetailLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendNoPO"/>
-														<Text text="No PO Yet"/>
-													</HBox>
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendPartial"/>
-														<Text text="PO – GR Partial"/>
-													</HBox>
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendReceived"/>
-														<Text text="Fully Received"/>
-													</HBox>
-												</HBox>
-								<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
+												<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
 													showZoom="true" showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
 															<cc:content>
-													<viz:VizFrame id="detailMonthlyValueChart" vizType="stacked_bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+													<viz:VizFrame id="detailMonthlyValueChart" vizType="column" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/monthlyValue}">
@@ -312,6 +298,20 @@
 														</cc:ChartContainerContent>
 													</cc:content>
 												</cc:ChartContainer>
+												<HBox class="prpoDetailLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendNoPO"/>
+														<Text text="No PO Yet"/>
+													</HBox>
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendPartial"/>
+														<Text text="PO – GR Partial"/>
+													</HBox>
+													<HBox class="prpoDetailLegendItem" alignItems="Center">
+														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendReceived"/>
+														<Text text="Fully Received"/>
+													</HBox>
+												</HBox>
 											</VBox>
 											<VBox class="prpoDetailChartCard">
 												<HBox class="prpoDetailChartHeading" alignItems="Center">
