@@ -62,7 +62,9 @@
 				"sap.suite.ui.commons": {},
 				"sap.ui.comp": {},
 				"sap.ui.core": {},
+				"sap.ui.export": {},
 				"sap.ui.layout": {},
+				"sap.ui.table": {},
 				"sap.ushell": {},
 				"sap.uxap": {},
 				"sap.viz": {}

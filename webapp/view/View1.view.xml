@@ -1,6 +1,6 @@
 <mvc:View controllerName="Z_PR_PO_Report_GC.controller.View1" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:core="sap.ui.core"
 	xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data" xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
-	xmlns:cc="sap.suite.ui.commons" displayBlock="true" height="100%">
+	xmlns:cc="sap.suite.ui.commons" xmlns:table="sap.ui.table" displayBlock="true" height="100%">
 	<App>
 		<pages>
 			<Page id="page" showHeader="false" enableScrolling="true" class="prpoPage">
@@ -199,18 +199,22 @@
 									<MessageStrip text="{detail>/valueWarningText}" type="Warning" showIcon="true"
 										visible="{= ${detail>/valueWarningText} !== '' &amp;&amp; ${detail>/hasData} }"/>
 									<VBox class="prpoDetailData" visible="{detail>/hasData}">
-										<FlexBox class="prpoKpiGrid" items="{detail>/kpis}" wrap="Wrap" renderType="Bare" alignItems="Stretch">
+									<FlexBox id="kpiGrid" class="prpoKpiGrid" items="{detail>/kpis}" wrap="Wrap" renderType="Bare" alignItems="Stretch">
 											<items>
-												<VBox class="prpoKpiCard">
-													<HBox class="prpoKpiMain" alignItems="Center">
-														<core:Icon src="{detail>icon}" class="prpoKpiIcon"/>
-														<VBox class="prpoKpiText">
-															<ObjectNumber number="{detail>value}" unit="{detail>unit}"/>
-															<Text text="{detail>label}" class="prpoKpiLabel"/>
+												<CustomTile class="prpoKpiCard" press="onKpiPress" tooltip="{= 'Filter table by ' + ${detail>label} }">
+													<content>
+														<VBox class="prpoKpiCardContent">
+															<HBox class="prpoKpiMain" alignItems="Center">
+																<core:Icon src="{detail>icon}" class="prpoKpiIcon"/>
+																<VBox class="prpoKpiText">
+																	<ObjectNumber number="{detail>value}" unit="{detail>unit}"/>
+																	<Text text="{detail>label}" class="prpoKpiLabel"/>
+																</VBox>
+															</HBox>
+															<Text text="{detail>hint}" class="prpoKpiHint"/>
 														</VBox>
-													</HBox>
-													<Text text="{detail>hint}" class="prpoKpiHint"/>
-												</VBox>
+													</content>
+												</CustomTile>
 											</items>
 										</FlexBox>
 										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
@@ -340,62 +344,59 @@
 												</cc:ChartContainer>
 											</VBox>
 										</HBox>
-										<!--<Title text="PR / PO / GR Detail Lines" level="H3" class="prpoDetailTableTitle"/>-->
-										<!--<ScrollContainer id="detailsTableScroll" width="100%" height="23rem" horizontal="true" vertical="true" focusable="true"-->
-										<!--	class="prpoDetailsTableScroll">-->
-										<!--	<Table id="detailsTable" items="{detail>/rows}" width="213rem" growing="false" class="prpoDetailsTable" noDataText="No details to display">-->
-										<!--		<columns>-->
-										<!--			<Column width="9rem"><Text text="PR Number / Item"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PR Date"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PR Release Date"/></Column>-->
-										<!--			<Column width="10rem"><Text text="Requester"/></Column>-->
-										<!--			<Column width="15rem"><Text text="Vendor"/></Column>-->
-										<!--			<Column width="22rem"><Text text="PR Description"/></Column>-->
-										<!--			<Column width="12rem"><Text text="Material"/></Column>-->
-										<!--			<Column width="9rem"><Text text="PO Number / Item"/></Column>-->
-										<!--			<Column width="11rem"><Text text="Status"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PO Created"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PO Release"/></Column>-->
-										<!--			<Column width="8rem"><Text text="Delivery Date"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PR Quantity"/></Column>-->
-										<!--			<Column width="8rem"><Text text="PO Quantity"/></Column>-->
-										<!--			<Column width="8rem"><Text text="GR Quantity"/></Column>-->
-										<!--			<Column width="8rem"><Text text="Pending Quantity"/></Column>-->
-										<!--			<Column width="12rem"><Text text="PR Unit Price (Lakh)"/></Column>-->
-										<!--			<Column width="13rem"><Text text="PR Total Value (Lakh)"/></Column>-->
-										<!--			<Column width="11rem"><Text text="GR Document"/></Column>-->
-										<!--			<Column width="8rem"><Text text="GR Date"/></Column>-->
-										<!--			<Column width="9rem"><Text text="PR – PO Days"/></Column>-->
-										<!--		</columns>-->
-										<!--		<items>-->
-										<!--			<ColumnListItem>-->
-										<!--				<cells>-->
-										<!--					<ObjectIdentifier title="{detail>banfn}" text="{detail>bnfpo}"/>-->
-										<!--					<Text text="{detail>BadatText}"/>-->
-										<!--					<Text text="{detail>PRReleaseText}"/>-->
-										<!--					<Text text="{detail>afnam_pr}"/>-->
-										<!--					<ObjectIdentifier title="{detail>name1}" text="{detail>lifnr}"/>-->
-										<!--					<Text text="{detail>TXZ01}" wrapping="false"/>-->
-										<!--					<Text text="{detail>matnr}"/>-->
-										<!--					<ObjectIdentifier title="{detail>ebeln}" text="{detail>ebelp}"/>-->
-										<!--					<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="true"/>-->
-										<!--					<Text text="{detail>PODateText}"/>-->
-										<!--					<Text text="{detail>POReleaseText}"/>-->
-										<!--					<Text text="{detail>DeliveryText}"/>-->
-										<!--					<Text text="{detail>PRQtyText}"/>-->
-										<!--					<Text text="{detail>POQtyText}"/>-->
-										<!--					<Text text="{detail>GRQtyText}"/>-->
-										<!--					<Text text="{detail>PendingQtyText}"/>-->
-										<!--					<Text text="{detail>PRUnitPriceText}"/>-->
-										<!--					<Text text="{detail>PRTotalValueText}"/>-->
-										<!--					<ObjectIdentifier title="{detail>mblnr}" text="{detail>GRDocItemText}"/>-->
-										<!--					<Text text="{detail>GRDateText}"/>-->
-										<!--					<Text text="{detail>days_between_pr_po}"/>-->
-										<!--				</cells>-->
-										<!--			</ColumnListItem>-->
-										<!--		</items>-->
-										<!--	</Table>-->
-										<!--</ScrollContainer>-->
+						<VBox id="detailTableSection" class="prpoDetailTableCard">
+							<Toolbar class="prpoDetailTableToolbar" style="Clear">
+								<core:Icon src="sap-icon://table-view" class="prpoCardIcon"/>
+								<Title text="PR / PO / GR Detail Lines" level="H3"/>
+								<ObjectStatus text="{detail>/tableSummaryText}" state="Information"/>
+								<ToolbarSpacer/>
+								<SearchField id="detailSearch" width="18rem" placeholder="Search PR, PO, vendor, material..."
+									value="{detail>/searchQuery}" liveChange="onDetailSearch" search="onDetailSearch"/>
+								<Button text="Clear Filters" icon="sap-icon://clear-filter" visible="{detail>/hasTableFilters}"
+									press="onClearDetailTableFilters"/>
+								<Button text="Export Excel" icon="sap-icon://excel-attachment" press="onExportDetailTable"/>
+							</Toolbar>
+							<table:Table id="detailsTable" rows="{detail>/visibleRows}" visibleRowCount="8" rowHeight="38" filter="onDetailTableFilter"
+								selectionMode="None" enableColumnReordering="true" alternateRowColors="true" width="100%"
+								class="prpoDetailsGridTable">
+								<table:noData><Text text="No detail rows match the current filters."/></table:noData>
+								<table:columns>
+									<table:Column width="8.5rem" sortProperty="banfn" filterProperty="banfn"><Label text="PR Number"/><table:template><Text text="{detail>banfn}"/></table:template></table:Column>
+									<table:Column width="5.5rem" sortProperty="bnfpo" filterProperty="bnfpo"><Label text="PR Item"/><table:template><Text text="{detail>bnfpo}"/></table:template></table:Column>
+									<table:Column width="6rem" sortProperty="werks" filterProperty="werks"><Label text="Plant"/><table:template><Text text="{detail>werks}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="badat_pr" filterProperty="badat_pr"><Label text="PR Date"/><table:template><Text text="{detail>BadatText}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="FRGDT"><Label text="PR Release Date"/><table:template><Text text="{detail>PRReleaseText}"/></table:template></table:Column>
+									<table:Column width="10rem" sortProperty="afnam_pr" filterProperty="afnam_pr"><Label text="Requester"/><table:template><Text text="{detail>afnam_pr}"/></table:template></table:Column>
+									<table:Column width="9rem" sortProperty="kostl_pr" filterProperty="kostl_pr"><Label text="Cost Center"/><table:template><Text text="{detail>kostl_pr}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="sakto_pr" filterProperty="sakto_pr"><Label text="G/L Account"/><table:template><Text text="{detail>sakto_pr}"/></table:template></table:Column>
+									<table:Column width="7rem" sortProperty="ekgrp" filterProperty="ekgrp"><Label text="Purchase Group"/><table:template><Text text="{detail>ekgrp}"/></table:template></table:Column>
+									<table:Column width="15rem" sortProperty="name1" filterProperty="name1"><Label text="Vendor"/><table:template><Text text="{detail>name1}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="Currency" filterProperty="Currency"><Label text="Currency"/><table:template><Text text="{detail>Currency}"/></table:template></table:Column>
+									<table:Column width="22rem" sortProperty="TXZ01" filterProperty="TXZ01"><Label text="PR Description"/><table:template><Text text="{detail>TXZ01}" wrapping="false"/></table:template></table:Column>
+									<table:Column width="12rem" sortProperty="matnr" filterProperty="matnr"><Label text="Material"/><table:template><Text text="{detail>matnr}"/></table:template></table:Column>
+									<table:Column width="8.5rem" sortProperty="ebeln" filterProperty="ebeln"><Label text="PO Number"/><table:template><Text text="{detail>ebeln}"/></table:template></table:Column>
+									<table:Column width="5.5rem" sortProperty="ebelp" filterProperty="ebelp"><Label text="PO Item"/><table:template><Text text="{detail>ebelp}"/></table:template></table:Column>
+									<table:Column width="10rem" sortProperty="Status" filterProperty="Status"><Label text="Status"/><table:template><ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="true"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="aedat_po"><Label text="PO Created"/><table:template><Text text="{detail>PODateText}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="release_date"><Label text="PO Release"/><table:template><Text text="{detail>POReleaseText}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="eindt"><Label text="Delivery Date"/><table:template><Text text="{detail>DeliveryText}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="PRQtyValue"><Label text="PR Quantity"/><table:template><Text text="{detail>PRQtyText}"/></table:template></table:Column>
+									<table:Column width="5rem" sortProperty="meins_pr"><Label text="PR UOM"/><table:template><Text text="{detail>meins_pr}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="POQtyValue"><Label text="PO Quantity"/><table:template><Text text="{detail>POQtyText}"/></table:template></table:Column>
+									<table:Column width="5rem" sortProperty="meins_po"><Label text="PO UOM"/><table:template><Text text="{detail>meins_po}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="GRQtyValue"><Label text="GR Quantity"/><table:template><Text text="{detail>GRQtyText}"/></table:template></table:Column>
+									<table:Column width="5rem" sortProperty="gr_meins"><Label text="GR UOM"/><table:template><Text text="{detail>gr_meins}"/></table:template></table:Column>
+									<table:Column width="9rem" sortProperty="PendingQtyValue"><Label text="Pending Quantity"/><table:template><Text text="{detail>PendingQtyText}"/></table:template></table:Column>
+									<table:Column width="12rem" sortProperty="UnitPriceValue"><Label text="PR Unit Price (Lakh)"/><table:template><Text text="{detail>PRUnitPriceText}"/></table:template></table:Column>
+									<table:Column width="13rem" sortProperty="PRValue"><Label text="PR Total Value (Lakh)"/><table:template><Text text="{detail>PRTotalValueText}"/></table:template></table:Column>
+									<table:Column width="10rem" sortProperty="mblnr"><Label text="GR Document"/><table:template><Text text="{detail>mblnr}"/></table:template></table:Column>
+									<table:Column width="6rem" sortProperty="mjahr"><Label text="GR Year"/><table:template><Text text="{detail>mjahr}"/></table:template></table:Column>
+									<table:Column width="6rem" sortProperty="ZEILE"><Label text="GR Item"/><table:template><Text text="{detail>ZEILE}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="gr_date"><Label text="GR Date"/><table:template><Text text="{detail>GRDateText}"/></table:template></table:Column>
+									<table:Column width="8rem" sortProperty="days_between_pr_po"><Label text="PR – PO Days"/><table:template><Text text="{detail>days_between_pr_po}"/></table:template></table:Column>
+								</table:columns>
+							</table:Table>
+						</VBox>
 									</VBox>
 								</VBox>
 							</content>

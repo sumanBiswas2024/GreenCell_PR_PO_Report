@@ -7,8 +7,10 @@ sap.ui.define([
 	"sap/m/StandardListItem",
 	"sap/viz/ui5/controls/Popover",
 	"sap/ui/Device",
+	"sap/ui/export/Spreadsheet",
+	"sap/ui/export/library",
 	"sap/ui/model/type/Float" // preload only: used as a type in View1.view.xml (avoids a sync load)
-], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, VizPopover, Device) {
+], function(Controller, JSONModel, Filter, FilterOperator, SelectDialog, StandardListItem, VizPopover, Device, Spreadsheet, exportLibrary) {
 	"use strict";
 
 	var DEBUG = true;
@@ -107,6 +109,12 @@ sap.ui.define([
 				errorText: "",
 				valueWarningText: "",
 				rows: [],
+				visibleRows: [],
+				activeKpi: "",
+				activeKpiText: "",
+				searchQuery: "",
+				hasTableFilters: false,
+				tableSummaryText: "",
 				kpis: [],
 				pipeline: [],
 				leadTime: [],
@@ -590,6 +598,12 @@ sap.ui.define([
 				errorText: "",
 				valueWarningText: "",
 				rows: [],
+				visibleRows: [],
+				activeKpi: "",
+				activeKpiText: "",
+				searchQuery: "",
+				hasTableFilters: false,
+				tableSummaryText: "",
 				kpis: [],
 				pipeline: [],
 				leadTime: [],
@@ -647,6 +661,9 @@ sap.ui.define([
 						}
 						var result = this._buildDetailDashboard(sourceRows);
 						detailModel.setProperty("/rows", result.rows);
+						detailModel.setProperty("/activeKpi", "");
+						detailModel.setProperty("/activeKpiText", "");
+						detailModel.setProperty("/searchQuery", "");
 						detailModel.setProperty("/kpis", result.kpis);
 						detailModel.setProperty("/pipeline", result.pipeline);
 						detailModel.setProperty("/leadTime", result.leadTime);
@@ -658,6 +675,8 @@ sap.ui.define([
 						detailModel.setProperty("/busy", false);
 						detailModel.setProperty("/hasData", sourceRows.length > 0);
 						detailModel.setProperty("/noData", sourceRows.length === 0);
+						this._applyDetailTableFilters();
+						this._syncKpiCardSelection();
 						this._logInfo("Detail dashboard loaded", {
 							requestId: requestId,
 							rawRows: sourceRows.length,
@@ -701,6 +720,292 @@ sap.ui.define([
 			detailModel.setProperty("/errorText", message);
 		},
 
+		onKpiPress: function(event) {
+			var kpi = event.getSource().getBindingContext("detail").getObject();
+			var detailModel = this.getView().getModel("detail");
+			var currentFilter = detailModel.getProperty("/activeKpi");
+			var nextFilter = currentFilter === kpi.filterKey ? "" : kpi.filterKey;
+			detailModel.setProperty("/activeKpi", nextFilter);
+			detailModel.setProperty("/searchQuery", "");
+			this.byId("detailSearch").setValue("");
+			this._applyDetailTableFilters();
+			this._syncKpiCardSelection();
+			this._scrollDetailTableIntoView();
+		},
+
+		onDetailSearch: function(event) {
+			var value = event.getParameter("newValue");
+			if (value === undefined) {
+				value = event.getSource().getValue();
+			}
+			this.getView().getModel("detail").setProperty("/searchQuery", value || "");
+			this._applyDetailTableFilters();
+		},
+
+		onClearDetailTableFilters: function() {
+			this.getView().getModel("detail").setProperty("/activeKpi", "");
+			this.getView().getModel("detail").setProperty("/searchQuery", "");
+			this.byId("detailSearch").setValue("");
+			this._applyDetailTableFilters();
+			var table = this.byId("detailsTable");
+			table.getColumns().forEach(function(column) {
+				if (column.getFiltered()) {
+					table.filter(column, "");
+				}
+			});
+			this._syncKpiCardSelection();
+		},
+
+		_applyDetailTableFilters: function() {
+			var model = this.getView().getModel("detail");
+			var rows = model.getProperty("/rows") || [];
+			var filterKey = model.getProperty("/activeKpi") || "";
+			var query = String(model.getProperty("/searchQuery") || "").trim().toLowerCase();
+			var kpi = (model.getProperty("/kpis") || []).filter(function(item) {
+				return item.filterKey === filterKey;
+			})[0];
+			var searchableFields = ["banfn", "bnfpo", "werks", "ebeln", "ebelp", "name1", "lifnr", "TXZ01", "matnr", "afnam_pr", "kostl_pr", "sakto_pr", "ekgrp", "Status", "mblnr"];
+			var visibleRows = rows.filter(function(row) {
+				var matchesKpi = true;
+				switch (filterKey) {
+				case "PR_VALUE":
+					matchesKpi = row.PRValue !== null && !!row.Currency;
+					break;
+				case "PO_COVERAGE":
+					matchesKpi = row.Status === "No PO Yet";
+					break;
+				case "FULLY_RECEIVED":
+					matchesKpi = row.Status === "Fully Received";
+					break;
+				case "OPEN_PR":
+					matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0;
+					break;
+				case "VALUE_PENDING":
+					matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0 &&
+						row.UnitPriceValue !== null && !!row.Currency;
+					break;
+				}
+				if (!matchesKpi || !query) {
+					return matchesKpi;
+				}
+				return searchableFields.some(function(field) {
+					return String(row[field] === null || row[field] === undefined ? "" : row[field]).toLowerCase().indexOf(query) !== -1;
+				});
+			}.bind(this));
+			var lineKeys = {};
+			visibleRows.forEach(function(row) {
+				lineKeys[row.PRLineKey] = true;
+			});
+			var lineCount = Object.keys(lineKeys).length;
+			var summary = visibleRows.length + " detail rows · " + lineCount + " PR items";
+			if (kpi) {
+				summary = kpi.label + " · " + summary;
+			}
+			model.setProperty("/visibleRows", visibleRows);
+			model.setProperty("/activeKpiText", kpi ? kpi.label : "");
+			model.setProperty("/tableSummaryText", summary);
+			model.setProperty("/hasTableFilters", !!filterKey || !!query);
+		},
+
+		_syncKpiCardSelection: function() {
+			var grid = this.byId("kpiGrid");
+			if (!grid) {
+				return;
+			}
+			var activeKpi = this.getView().getModel("detail").getProperty("/activeKpi");
+			grid.getItems().forEach(function(tile) {
+				var context = tile.getBindingContext("detail");
+				var kpi = context && context.getObject();
+				tile.toggleStyleClass("prpoKpiCardActive", !!kpi && !!activeKpi && kpi.filterKey === activeKpi);
+			});
+		},
+
+		_scrollDetailTableIntoView: function() {
+			var section = this.byId("detailTableSection");
+			var page = this.byId("page");
+			var domRef = section && section.getDomRef();
+			var pageDom = page && page.getDomRef();
+			var pageScroller = pageDom && pageDom.querySelector(".sapMPageEnableScrolling");
+			if (domRef && pageScroller && page && page.scrollTo) {
+				var targetTop = pageScroller.scrollTop + domRef.getBoundingClientRect().top - pageScroller.getBoundingClientRect().top;
+				page.scrollTo(Math.max(0, targetTop), 350);
+			} else if (domRef && domRef.scrollIntoView) {
+				domRef.scrollIntoView({
+					behavior: "smooth",
+					block: "start"
+				});
+			}
+		},
+
+		onExportDetailTable: function() {
+			// Export the table's currently filtered and sorted row contexts, not the unfiltered OData response.
+			var table = this.byId("detailsTable");
+			var binding = table && table.getBinding("rows");
+			var length = binding ? binding.getLength() : 0;
+			var rows = binding ? binding.getContexts(0, length).map(function(context) {
+				return context.getObject();
+			}) : [];
+			if (!rows.length) {
+				this._showMessage("There are no detail rows to export for the current filter.", "Information", false);
+				return;
+			}
+			var EdmType = exportLibrary.EdmType;
+			var columns = [{
+				label: "PR Number",
+				property: "banfn",
+				type: EdmType.String
+			}, {
+				label: "PR Item",
+				property: "bnfpo",
+				type: EdmType.String
+			}, {
+				label: "Plant",
+				property: "werks",
+				type: EdmType.String
+			}, {
+				label: "PR Date",
+				property: "BadatText",
+				type: EdmType.String
+			}, {
+				label: "PR Release Date",
+				property: "PRReleaseText",
+				type: EdmType.String
+			}, {
+				label: "Requester",
+				property: "afnam_pr",
+				type: EdmType.String
+			}, {
+				label: "Cost Center",
+				property: "kostl_pr",
+				type: EdmType.String
+			}, {
+				label: "G/L Account",
+				property: "sakto_pr",
+				type: EdmType.String
+			}, {
+				label: "Purchase Group",
+				property: "ekgrp",
+				type: EdmType.String
+			}, {
+				label: "Vendor",
+				property: "name1",
+				type: EdmType.String
+			}, {
+				label: "Vendor Number",
+				property: "lifnr",
+				type: EdmType.String
+			}, {
+				label: "Currency",
+				property: "Currency",
+				type: EdmType.String
+			}, {
+				label: "PR Description",
+				property: "TXZ01",
+				type: EdmType.String
+			}, {
+				label: "Material",
+				property: "matnr",
+				type: EdmType.String
+			}, {
+				label: "PO Number",
+				property: "ebeln",
+				type: EdmType.String
+			}, {
+				label: "PO Item",
+				property: "ebelp",
+				type: EdmType.String
+			}, {
+				label: "Status",
+				property: "Status",
+				type: EdmType.String
+			}, {
+				label: "PO Created",
+				property: "PODateText",
+				type: EdmType.String
+			}, {
+				label: "PO Release",
+				property: "POReleaseText",
+				type: EdmType.String
+			}, {
+				label: "Delivery Date",
+				property: "DeliveryText",
+				type: EdmType.String
+			}, {
+				label: "PR Quantity",
+				property: "PRQtyValue",
+				type: EdmType.Number
+			}, {
+				label: "PR UOM",
+				property: "meins_pr",
+				type: EdmType.String
+			}, {
+				label: "PO Quantity",
+				property: "POQtyValue",
+				type: EdmType.Number
+			}, {
+				label: "PO UOM",
+				property: "meins_po",
+				type: EdmType.String
+			}, {
+				label: "GR Quantity",
+				property: "GRQtyValue",
+				type: EdmType.Number
+			}, {
+				label: "GR UOM",
+				property: "gr_meins",
+				type: EdmType.String
+			}, {
+				label: "Pending Quantity",
+				property: "PendingQtyValue",
+				type: EdmType.Number
+			}, {
+				label: "PR Unit Price (Lakh)",
+				property: "UnitPriceLakhValue",
+				type: EdmType.Number
+			}, {
+				label: "PR Total Value (Lakh)",
+				property: "PRValueLakhValue",
+				type: EdmType.Number
+			}, {
+				label: "GR Document",
+				property: "mblnr",
+				type: EdmType.String
+			}, {
+				label: "GR Year",
+				property: "mjahr",
+				type: EdmType.String
+			}, {
+				label: "GR Item",
+				property: "ZEILE",
+				type: EdmType.String
+			}, {
+				label: "GR Date",
+				property: "GRDateText",
+				type: EdmType.String
+			}, {
+				label: "PR – PO Days",
+				property: "days_between_pr_po",
+				type: EdmType.Number
+			}];
+			var spreadsheet = new Spreadsheet({
+				workbook: {
+					columns: columns,
+					context: {
+						sheetName: "PR PO GR Details"
+					}
+				},
+				dataSource: rows,
+				fileName: "PR_PO_GR_Details.xlsx"
+			});
+			spreadsheet.build().then(function() {
+				spreadsheet.destroy();
+			}.bind(this), function(error) {
+				spreadsheet.destroy();
+				this._logError("Detail Excel export failed", error);
+				this._showMessage("Could not export the detail rows to Excel.", "Error", false);
+			}.bind(this));
+		},
+
 		_scrollDetailsPanelIntoView: function() {
 			var detailsPanel = this.byId("detailsPanel");
 			var page = this.byId("page");
@@ -742,6 +1047,8 @@ sap.ui.define([
 				copy.UnitPriceValue = this._detailNumber(record.preis_pr);
 				copy.LeadDaysValue = this._detailNumber(record.days_between_pr_po);
 				copy.Currency = String(record.waers_pr || "").trim().toUpperCase();
+				copy.UnitPriceLakhValue = copy.UnitPriceValue === null ? null : copy.UnitPriceValue / 100000;
+				copy.PRValueLakhValue = copy.PRValue === null ? null : copy.PRValue / 100000;
 				copy.BadatText = this._formatDetailDate(record.badat_pr);
 				copy.PODateText = this._formatDetailDate(record.aedat_po);
 				copy.POReleaseText = this._formatDetailDate(record.release_date);
@@ -818,15 +1125,15 @@ sap.ui.define([
 			// PO Coverage (%) = PR items with blank PO / all distinct PR items × 100.
 			var noPORate = lines.length ? (noPOCount / lines.length) * 100 : 0;
 			var kpis = [
-				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length),
+				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length, "", "ALL"),
 				this._kpi("Total PR Value", totalPRValue === null ? "—" : this._formatCurrency(totalPRValue, singleCurrency),
-					"Sum of PR total price", "sap-icon://money-bills", totalPRValue),
-				this._kpi("PO Coverage", noPORate.toFixed(1), "PR lines with blank PO", "sap-icon://chain-link", noPORate, "%"),
+					"Sum of PR total price", "sap-icon://money-bills", totalPRValue, "", "PR_VALUE"),
+				this._kpi("PO Coverage", noPORate.toFixed(1), "PR lines with blank PO", "sap-icon://chain-link", noPORate, "%", "PO_COVERAGE"),
 				this._kpi("Fully Received", this._formatInteger(fullyReceivedCount), "PO present and pending quantity = 0", "sap-icon://accept",
-					fullyReceivedCount),
-				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount),
+					fullyReceivedCount, "", "FULLY_RECEIVED"),
+				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount, "", "OPEN_PR"),
 				this._kpi("Value Pending PO", pendingPOValue === null ? "—" : this._formatCurrency(pendingPOValue, singleCurrency),
-					"Pending quantity × unit price", "sap-icon://money-bills", pendingPOValue)
+					"Pending quantity × unit price", "sap-icon://money-bills", pendingPOValue, "", "VALUE_PENDING")
 			];
 			return {
 				rows: rows,
@@ -841,14 +1148,15 @@ sap.ui.define([
 			};
 		},
 
-		_kpi: function(label, value, hint, icon, rawValue, unit) {
+		_kpi: function(label, value, hint, icon, rawValue, unit, filterKey) {
 			return {
 				label: label,
 				value: value,
 				hint: hint,
 				icon: icon,
 				rawValue: rawValue,
-				unit: unit || ""
+				unit: unit || "",
+				filterKey: filterKey || "ALL"
 			};
 		},
 
@@ -927,6 +1235,28 @@ sap.ui.define([
 					}).length
 				};
 			});
+		},
+
+		onDetailTableFilter: function() {
+			var table = this.byId("detailsTable");
+			var binding = table.getBinding("rows");
+			if (!binding) {
+				return;
+			}
+			var contexts = binding.getContexts(0, binding.getLength());
+			var lineKeys = {};
+			contexts.forEach(function(context) {
+				var row = context.getObject();
+				lineKeys[row.PRLineKey] = true;
+			});
+			var model = this.getView().getModel("detail");
+			var activeKpi = model.getProperty("/activeKpiText");
+			var summary = contexts.length + " detail rows · " + Object.keys(lineKeys).length + " PR items";
+			model.setProperty("/tableSummaryText", activeKpi ? activeKpi + " · " + summary : summary);
+			var hasColumnFilters = table.getColumns().some(function(column) {
+				return column.getFiltered();
+			});
+			model.setProperty("/hasTableFilters", !!model.getProperty("/activeKpi") || !!model.getProperty("/searchQuery") || hasColumnFilters);
 		},
 
 		_buildLeadTimeDistribution: function(lines) {
@@ -1520,6 +1850,12 @@ sap.ui.define([
 					errorText: "",
 					valueWarningText: "",
 					rows: [],
+					visibleRows: [],
+					activeKpi: "",
+					activeKpiText: "",
+					searchQuery: "",
+					hasTableFilters: false,
+					tableSummaryText: "",
 					kpis: [],
 					pipeline: [],
 					leadTime: [],
