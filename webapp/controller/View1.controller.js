@@ -764,26 +764,28 @@ sap.ui.define([
 			var kpi = (model.getProperty("/kpis") || []).filter(function(item) {
 				return item.filterKey === filterKey;
 			})[0];
-			var searchableFields = ["banfn", "bnfpo", "werks", "ebeln", "ebelp", "name1", "lifnr", "TXZ01", "matnr", "afnam_pr", "kostl_pr", "sakto_pr", "ekgrp", "Status", "mblnr"];
+			var searchableFields = ["banfn", "bnfpo", "werks", "ebeln", "ebelp", "name1", "lifnr", "TXZ01", "matnr", "afnam_pr", "kostl_pr",
+				"sakto_pr", "ekgrp", "Status", "mblnr"
+			];
 			var visibleRows = rows.filter(function(row) {
 				var matchesKpi = true;
 				switch (filterKey) {
-				case "PR_VALUE":
-					matchesKpi = row.PRValue !== null && !!row.Currency;
-					break;
-				case "PO_COVERAGE":
-					matchesKpi = row.Status === "No PO Yet";
-					break;
-				case "FULLY_RECEIVED":
-					matchesKpi = row.Status === "Fully Received";
-					break;
-				case "OPEN_PR":
-					matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0;
-					break;
-				case "VALUE_PENDING":
-					matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0 &&
-						row.UnitPriceValue !== null && !!row.Currency;
-					break;
+					case "PR_VALUE":
+						matchesKpi = row.PRValue !== null && !!row.Currency;
+						break;
+					case "PO_COVERAGE":
+						matchesKpi = row.Status === "No PO Yet";
+						break;
+					case "FULLY_RECEIVED":
+						matchesKpi = row.Status === "Fully Received";
+						break;
+					case "OPEN_PR":
+						matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0;
+						break;
+					case "VALUE_PENDING":
+						matchesKpi = !this._isBlank(row.ebeln) && row.PendingQtyValue !== null && row.PendingQtyValue > 0 &&
+							row.UnitPriceValue !== null && !!row.Currency;
+						break;
 				}
 				if (!matchesKpi || !query) {
 					return matchesKpi;
@@ -1125,13 +1127,15 @@ sap.ui.define([
 			// PO Coverage (%) = PR items with blank PO / all distinct PR items × 100.
 			var noPORate = lines.length ? (noPOCount / lines.length) * 100 : 0;
 			var kpis = [
-				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length, "", "ALL"),
+				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length,
+					"", "ALL"),
 				this._kpi("Total PR Value", totalPRValue === null ? "—" : this._formatCurrency(totalPRValue, singleCurrency),
 					"Sum of PR total price", "sap-icon://money-bills", totalPRValue, "", "PR_VALUE"),
 				this._kpi("PO Coverage", noPORate.toFixed(1), "PR lines with blank PO", "sap-icon://chain-link", noPORate, "%", "PO_COVERAGE"),
 				this._kpi("Fully Received", this._formatInteger(fullyReceivedCount), "PO present and pending quantity = 0", "sap-icon://accept",
 					fullyReceivedCount, "", "FULLY_RECEIVED"),
-				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount, "", "OPEN_PR"),
+				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount,
+					"", "OPEN_PR"),
 				this._kpi("Value Pending PO", pendingPOValue === null ? "—" : this._formatCurrency(pendingPOValue, singleCurrency),
 					"Pending quantity × unit price", "sap-icon://money-bills", pendingPOValue, "", "VALUE_PENDING")
 			];
@@ -1215,7 +1219,11 @@ sap.ui.define([
 			if (status === "Fully Received") {
 				return "Success";
 			}
-			if (status === "PO-GR Partial" || status === "PO-Awaiting GR") {
+			if (status === "PO-Awaiting GR") {
+				// Use the dedicated CSS pill color instead of the default UI5 warning orange.
+				return "None";
+			}
+			if (status === "PO-GR Partial") {
 				return "Warning";
 			}
 			if (status === "No PO Yet" || status === "Over-Received") {
@@ -1225,8 +1233,8 @@ sap.ui.define([
 		},
 
 		_buildProcurementPipeline: function(lines) {
-			// Pipeline shows only the three requested statuses; awaiting-GR, over-received, and IR are omitted.
-			var includedStatuses = ["No PO Yet", "PO-GR Partial", "Fully Received"];
+			// Pipeline shows the requested PO progress statuses; over-received and IR remain omitted.
+			var includedStatuses = ["No PO Yet", "PO-Awaiting GR", "PO-GR Partial", "Fully Received"];
 			return includedStatuses.map(function(status) {
 				return {
 					Status: status,
@@ -1323,12 +1331,14 @@ sap.ui.define([
 						Month: MONTHS_SHORT[date.getMonth()] + " " + date.getFullYear(),
 						SortKey: monthKey,
 						NoPOYetValue: 0,
+						POAwaitingGRValue: 0,
 						POGRPartialValue: 0,
 						FullyReceivedValue: 0
 					};
 				}
 				var field = {
 					"No PO Yet": "NoPOYetValue",
+					"PO-Awaiting GR": "POAwaitingGRValue",
 					"PO-GR Partial": "POGRPartialValue",
 					"Fully Received": "FullyReceivedValue"
 				}[line.Status];
@@ -1669,7 +1679,7 @@ sap.ui.define([
 					interaction: common.interaction
 				};
 			};
-			var pipelineProperties = propertiesWithPalette(["#f04b50", "#1680f5", "#14a65a"]);
+			var pipelineProperties = propertiesWithPalette(["#f04b50", "#e9730c", "#1680f5", "#14a65a"]);
 			pipelineProperties.plotArea.dataPointStyle = {
 				rules: [{
 					dataContext: {
@@ -1677,6 +1687,13 @@ sap.ui.define([
 					},
 					properties: {
 						color: "#f04b50"
+					}
+				}, {
+					dataContext: {
+						Status: "PO-Awaiting GR"
+					},
+					properties: {
+						color: "#e9730c"
 					}
 				}, {
 					dataContext: {
@@ -1705,7 +1722,7 @@ sap.ui.define([
 					visible: false
 				},
 				plotArea: {
-					colorPalette: ["#d55e00", "#e69f00", "#cc79a7"],
+					colorPalette: ["#d55e00", "#e69f00", "#cc79a7", "#bf2a5e"],
 					dataLabel: {
 						visible: true,
 						hideWhenOverlap: false,
