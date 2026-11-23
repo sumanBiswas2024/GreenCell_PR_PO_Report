@@ -114,6 +114,87 @@
 	color: var(--prpo-muted);
 }
 
+.prpoDetailContent,
+.prpoDetailData {
+	gap: 0.85rem;
+}
+
+.prpoDetailEmpty {
+	padding: 1.5rem 1rem;
+	text-align: center;
+	color: var(--prpo-muted);
+}
+
+.prpoKpiGrid {
+	gap: 0.7rem;
+	margin-bottom: 0.1rem;
+}
+
+.prpoKpiCard {
+	flex: 0 0 calc(33.333% - 0.47rem);
+	max-width: calc(33.333% - 0.47rem);
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 0.8rem 0.9rem;
+	background: linear-gradient(135deg, #ffffff 0%, #f7fbf7 100%);
+	border: 1px solid #dce9df;
+	border-radius: 0.75rem;
+	box-shadow: 0 0.15rem 0.45rem rgba(25, 70, 42, 0.055);
+}
+
+.prpoKpiMain { gap: 0.65rem; }
+
+.prpoKpiIcon {
+	flex: 0 0 auto;
+	color: #16804a;
+	background: #e7f5ea;
+	border-radius: 50%;
+	padding: 0.65rem;
+	font-size: 1.15rem;
+}
+
+.prpoKpiText { min-width: 0; }
+.prpoKpiText .sapMObjectNumberText { color: #17382a; font-size: 1.35rem; font-weight: 700; }
+.prpoKpiText .sapMObjectNumberUnit { color: #45624d; font-weight: 700; }
+.prpoKpiLabel { color: #294a34; font-weight: 700; }
+.prpoKpiHint { color: #708274; font-size: 0.72rem; margin-top: 0.45rem; }
+
+.prpoDetailChartRow {
+	gap: 0.85rem;
+	margin-bottom: 0.15rem;
+}
+
+.prpoDetailChartCard {
+	flex: 1 1 calc(50% - 0.45rem);
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 0.45rem 0.6rem;
+	background: #fff;
+	border: 1px solid #e0ebe2;
+	border-radius: 0.75rem;
+}
+
+.prpoDetailChartCard .sapSuiteUiCommonsChartContainer {
+	width: 100%;
+	max-width: 100%;
+}
+
+.prpoDetailTableTitle { color: #234b32; margin: 0.2rem 0; }
+
+.prpoDetailsTableScroll {
+	border: 1px solid #dce9df;
+	border-radius: 0.65rem;
+	background: #fff;
+}
+
+.prpoDetailsTable .sapMListTblHeaderCell {
+	background: #f1f7f2;
+	font-weight: 700;
+}
+
+.prpoDetailsTable .sapMListTblRow:hover > td { background: #f4faf5; }
+.prpoDetailsTable .sapMListTblCell { border-bottom-color: #e7efe8; }
+
 .prpoContextChip {
 	white-space: nowrap;
 }
@@ -349,6 +430,9 @@
 	.prpoSplitCol { height: 21rem; padding: 0.5rem; }
 	.prpoSplit { gap: 0.8rem; }
 	.prpoChartContainer { height: 15rem; }
+	.prpoKpiCard { flex-basis: 100%; max-width: 100%; min-width: 0; }
+	.prpoDetailChartCard { flex-basis: 100%; }
+	.prpoDetailsTableScroll { height: 20rem !important; }
 }
 
 @media (min-width: 601px) and (max-width: 1024px) {

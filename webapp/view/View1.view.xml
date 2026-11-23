@@ -16,8 +16,7 @@
 							<link><Link text="Retry" visible="{screen1>/canRetry}" press="onRetry"/></link>
 						</MessageStrip>
 						<!-- PANEL 0: Selection Criteria (separate from the analysis panel) -->
-						<Panel id="selectionPanel" class="prpoCard prpoSelectionPanel" expandable="false" backgroundDesign="Solid"
-							accessibleRole="Region">
+						<Panel id="selectionPanel" class="prpoCard prpoSelectionPanel" expandable="false" backgroundDesign="Solid" accessibleRole="Region">
 							<headerToolbar>
 								<Toolbar class="prpoCardHeader" style="Clear">
 									<core:Icon src="sap-icon://filter" class="prpoCardIcon"/>
@@ -175,18 +174,199 @@
 								</VBox>
 							</content>
 						</Panel>
-						<!-- PANEL 2: Detailed dashboard (next stage) -->
+						<!-- PANEL 2: PR / PO / GR details for the selected period -->
 						<Panel id="detailsPanel" class="prpoCard prpoDetailsPanel" expandable="true" expanded="false" backgroundDesign="Solid"
 							accessibleRole="Region">
 							<headerToolbar>
 								<Toolbar class="prpoCardHeader" style="Clear">
 									<core:Icon src="sap-icon://detail-view" class="prpoCardIcon"/>
-									<Title text="PR / PO / GR / IR Details Dashboard" level="H2"/>
+									<Title text="PR / PO / GR Details Dashboard" level="H2"/>
+									<ToolbarSpacer/>
+									<ObjectStatus text="{detail>/contextText}" state="Success" inverted="true"/>
 								</Toolbar>
 							</headerToolbar>
 							<content>
-								<VBox class="prpoPanelContent">
-									<Text text="The detailed dashboard section will be implemented in the next stage."/>
+								<VBox class="prpoDetailContent" busy="{detail>/busy}" busyIndicatorDelay="0">
+									<VBox class="prpoDetailEmpty" alignItems="Center" visible="{= !${detail>/selectedPeriod} &amp;&amp; !${detail>/busy} }">
+										<core:Icon src="sap-icon://detail-view" size="1.8rem" class="prpoEmptyIcon"/>
+										<Text text="Select a period from the table or chart above to load PR / PO / GR details."/>
+									</VBox>
+									<MessageStrip text="{detail>/errorText}" type="Error" showIcon="true" visible="{= ${detail>/errorText} !== '' }">
+										<link><Link text="Retry" press="onRetryDetails"/></link>
+									</MessageStrip>
+									<MessageStrip text="No PR / PO / GR detail records were found for this period." type="Information" showIcon="true"
+										visible="{detail>/noData}"/>
+									<MessageStrip text="{detail>/valueWarningText}" type="Warning" showIcon="true"
+										visible="{= ${detail>/valueWarningText} !== '' &amp;&amp; ${detail>/hasData} }"/>
+									<VBox class="prpoDetailData" visible="{detail>/hasData}">
+										<FlexBox class="prpoKpiGrid" items="{detail>/kpis}" wrap="Wrap" renderType="Bare" alignItems="Stretch">
+											<items>
+												<VBox class="prpoKpiCard">
+													<HBox class="prpoKpiMain" alignItems="Center">
+														<core:Icon src="{detail>icon}" class="prpoKpiIcon"/>
+														<VBox class="prpoKpiText">
+															<ObjectNumber number="{detail>value}" unit="{detail>unit}"/>
+															<Text text="{detail>label}" class="prpoKpiLabel"/>
+														</VBox>
+													</HBox>
+													<Text text="{detail>hint}" class="prpoKpiHint"/>
+												</VBox>
+											</items>
+										</FlexBox>
+										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
+											<VBox class="prpoDetailChartCard">
+												<cc:ChartContainer id="detailPipelineContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+													showPersonalization="false" showLegend="false" showLegendButton="false">
+													<cc:content>
+														<cc:ChartContainerContent icon="sap-icon://process" title="Procurement Pipeline (PR Lines)">
+															<cc:content>
+																<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+																	renderComplete="onDetailChartRenderComplete">
+																	<viz:dataset>
+																		<viz.data:FlattenedDataset data="{detail>/pipeline}">
+																			<viz.data:dimensions><viz.data:DimensionDefinition name="Status" value="{detail>Status}"/></viz.data:dimensions>
+																			<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
+																		</viz.data:FlattenedDataset>
+																	</viz:dataset>
+																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
+																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Status"/></viz:feeds>
+																</viz:VizFrame>
+															</cc:content>
+														</cc:ChartContainerContent>
+													</cc:content>
+												</cc:ChartContainer>
+											</VBox>
+											<VBox class="prpoDetailChartCard">
+												<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+													showPersonalization="false" showLegend="false" showLegendButton="false">
+													<cc:content>
+														<cc:ChartContainerContent icon="sap-icon://history" title="PR – PO Lead Time (Days)">
+															<cc:content>
+																<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+																	renderComplete="onDetailChartRenderComplete">
+																	<viz:dataset>
+																		<viz.data:FlattenedDataset data="{detail>/leadTime}">
+																			<viz.data:dimensions><viz.data:DimensionDefinition name="Bucket" value="{detail>Bucket}"/></viz.data:dimensions>
+																			<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
+																		</viz.data:FlattenedDataset>
+																	</viz:dataset>
+																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
+																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Bucket"/></viz:feeds>
+																</viz:VizFrame>
+															</cc:content>
+														</cc:ChartContainerContent>
+													</cc:content>
+												</cc:ChartContainer>
+											</VBox>
+										</HBox>
+										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
+											<VBox class="prpoDetailChartCard">
+												<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true"
+													showZoom="true" showPersonalization="false" showLegend="true" showLegendButton="false">
+													<cc:content>
+														<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
+															<cc:content>
+																<viz:VizFrame id="detailMonthlyValueChart" vizType="stacked_column" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+																	renderComplete="onDetailChartRenderComplete">
+																	<viz:dataset>
+																		<viz.data:FlattenedDataset data="{detail>/monthlyValue}">
+																			<viz.data:dimensions><viz.data:DimensionDefinition name="Month" value="{detail>Month}"/></viz.data:dimensions>
+																			<viz.data:measures>
+																				<viz.data:MeasureDefinition name="No PO Yet Value" value="{detail>NoPOYetValue}"/>
+																				<viz.data:MeasureDefinition name="PO-GR Partial Value" value="{detail>POGRPartialValue}"/>
+																				<viz.data:MeasureDefinition name="Fully Received Value" value="{detail>FullyReceivedValue}"/>
+																				<viz.data:MeasureDefinition name="Over-Received Value" value="{detail>OverReceivedValue}"/>
+																			</viz.data:measures>
+																		</viz.data:FlattenedDataset>
+																	</viz:dataset>
+																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="No PO Yet Value,PO-GR Partial Value,Fully Received Value,Over-Received Value"/>
+																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Month"/></viz:feeds>
+																</viz:VizFrame>
+															</cc:content>
+														</cc:ChartContainerContent>
+													</cc:content>
+												</cc:ChartContainer>
+											</VBox>
+											<VBox class="prpoDetailChartCard">
+												<cc:ChartContainer id="detailTopVendorsContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+													showPersonalization="false" showLegend="false" showLegendButton="false">
+													<cc:content>
+														<cc:ChartContainerContent icon="sap-icon://trophy" title="{detail>/topVendorsChartTitle}">
+															<cc:content>
+																<viz:VizFrame id="detailTopVendorsChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+																	renderComplete="onDetailChartRenderComplete">
+																	<viz:dataset>
+																		<viz.data:FlattenedDataset data="{detail>/topVendors}">
+																			<viz.data:dimensions><viz.data:DimensionDefinition name="Vendor" value="{detail>Vendor}"/></viz.data:dimensions>
+																			<viz.data:measures><viz.data:MeasureDefinition name="PR Value" value="{detail>PRValue}"/></viz.data:measures>
+																		</viz.data:FlattenedDataset>
+																	</viz:dataset>
+																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Value"/>
+																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Vendor"/></viz:feeds>
+																</viz:VizFrame>
+															</cc:content>
+														</cc:ChartContainerContent>
+													</cc:content>
+												</cc:ChartContainer>
+											</VBox>
+										</HBox>
+										<Title text="PR / PO / GR Detail Lines" level="H3" class="prpoDetailTableTitle"/>
+										<ScrollContainer id="detailsTableScroll" width="100%" height="23rem" horizontal="true" vertical="true" focusable="true"
+											class="prpoDetailsTableScroll">
+											<Table id="detailsTable" items="{detail>/rows}" width="213rem" growing="false" class="prpoDetailsTable" noDataText="No details to display">
+												<columns>
+													<Column width="9rem"><Text text="PR Number / Item"/></Column>
+													<Column width="8rem"><Text text="PR Date"/></Column>
+													<Column width="8rem"><Text text="PR Release Date"/></Column>
+													<Column width="10rem"><Text text="Requester"/></Column>
+													<Column width="15rem"><Text text="Vendor"/></Column>
+													<Column width="22rem"><Text text="PR Description"/></Column>
+													<Column width="12rem"><Text text="Material"/></Column>
+													<Column width="9rem"><Text text="PO Number / Item"/></Column>
+													<Column width="11rem"><Text text="Status"/></Column>
+													<Column width="8rem"><Text text="PO Created"/></Column>
+													<Column width="8rem"><Text text="PO Release"/></Column>
+													<Column width="8rem"><Text text="Delivery Date"/></Column>
+													<Column width="8rem"><Text text="PR Quantity"/></Column>
+													<Column width="8rem"><Text text="PO Quantity"/></Column>
+													<Column width="8rem"><Text text="GR Quantity"/></Column>
+													<Column width="8rem"><Text text="Pending Quantity"/></Column>
+													<Column width="12rem"><Text text="PR Unit Price (Lakh)"/></Column>
+													<Column width="13rem"><Text text="PR Total Value (Lakh)"/></Column>
+													<Column width="11rem"><Text text="GR Document"/></Column>
+													<Column width="8rem"><Text text="GR Date"/></Column>
+													<Column width="9rem"><Text text="PR – PO Days"/></Column>
+												</columns>
+												<items>
+													<ColumnListItem>
+														<cells>
+															<ObjectIdentifier title="{detail>banfn}" text="{detail>bnfpo}"/>
+															<Text text="{detail>BadatText}"/>
+															<Text text="{detail>PRReleaseText}"/>
+															<Text text="{detail>afnam_pr}"/>
+															<ObjectIdentifier title="{detail>name1}" text="{detail>lifnr}"/>
+															<Text text="{detail>TXZ01}" wrapping="false"/>
+															<Text text="{detail>matnr}"/>
+															<ObjectIdentifier title="{detail>ebeln}" text="{detail>ebelp}"/>
+															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="true"/>
+															<Text text="{detail>PODateText}"/>
+															<Text text="{detail>POReleaseText}"/>
+															<Text text="{detail>DeliveryText}"/>
+															<Text text="{detail>PRQtyText}"/>
+															<Text text="{detail>POQtyText}"/>
+															<Text text="{detail>GRQtyText}"/>
+															<Text text="{detail>PendingQtyText}"/>
+															<Text text="{detail>PRUnitPriceText}"/>
+															<Text text="{detail>PRTotalValueText}"/>
+															<ObjectIdentifier title="{detail>mblnr}" text="{detail>GRDocItemText}"/>
+															<Text text="{detail>GRDateText}"/>
+															<Text text="{detail>days_between_pr_po}"/>
+														</cells>
+													</ColumnListItem>
+												</items>
+											</Table>
+										</ScrollContainer>
+									</VBox>
 								</VBox>
 							</content>
 						</Panel>

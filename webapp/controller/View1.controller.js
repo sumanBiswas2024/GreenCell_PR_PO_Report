@@ -44,6 +44,9 @@ sap.ui.define([
 			this._requestPending = false;
 			this._requestSerial = 0;
 			this._retryAction = null;
+			this._detailRequestSerial = 0;
+			this._detailRetryPeriod = null;
+			this._vizPopovers = {};
 
 			// Reserve space for ChartContainer's toolbar while keeping the split section height fixed.
 			var chartHeight = Device.system.phone ? "11rem" : (Device.system.tablet ? "13rem" : "15rem");
@@ -95,8 +98,27 @@ sap.ui.define([
 				}
 			}), "screen1");
 
+			this.getView().setModel(new JSONModel({
+				selectedPeriod: null,
+				contextText: "",
+				busy: false,
+				hasData: false,
+				noData: false,
+				errorText: "",
+				valueWarningText: "",
+				rows: [],
+				kpis: [],
+				pipeline: [],
+				leadTime: [],
+				monthlyValue: [],
+				topVendors: [],
+				monthlyChartTitle: "Monthly PR Value by Status",
+				topVendorsChartTitle: "Top Vendors by PR Value"
+			}), "detail");
+
 			this._updateSubPeriods(true);
 			this._configureChart();
+			this._configureDetailCharts();
 			this._loadPlantValues();
 
 			var odataModel = this.getOwnerComponent().getModel();
@@ -111,16 +133,29 @@ sap.ui.define([
 		},
 
 		onAfterRendering: function() {
-			if (this._vizPopover) {
+			this._connectChartPopover(this.byId("quantityChart"));
+			[
+				"detailPipelineChart",
+				"detailLeadTimeChart",
+				"detailMonthlyValueChart",
+				"detailTopVendorsChart"
+			].forEach(function(id) {
+				this._connectChartPopover(this.byId(id));
+			}.bind(this));
+		},
+
+		_connectChartPopover: function(chart) {
+			if (!chart || !chart.getVizUid || this._vizPopovers[chart.getId()]) {
 				return;
 			}
-			var chart = this.byId("quantityChart");
-			if (!chart) {
+			var vizUid = chart.getVizUid();
+			if (!vizUid) {
 				return;
 			}
-			this._vizPopover = new VizPopover();
-			this._vizPopover.connect(chart.getVizUid());
-			this.getView().addDependent(this._vizPopover);
+			var popover = new VizPopover();
+			popover.connect(vizUid);
+			this.getView().addDependent(popover);
+			this._vizPopovers[chart.getId()] = popover;
 		},
 
 		/* =========================================================== */
@@ -252,7 +287,9 @@ sap.ui.define([
 			this.getView().getModel("screen1").setProperty("/selection/plant", plant);
 			this._setFieldState("plant", "None", "");
 			this._markStale();
-			this._logInfo("Plant suggestion selected", { Plant: plant });
+			this._logInfo("Plant suggestion selected", {
+				Plant: plant
+			});
 		},
 		onYearChange: function() {
 			this._setFieldState("year", "None", "");
@@ -348,7 +385,9 @@ sap.ui.define([
 			var periodValid = true;
 			if (typeValid && selection.type !== "Y") {
 				var selectedPeriod = String(selection.subPeriod || "");
-				var validPeriodKeys = (vm.getProperty("/subPeriods") || []).map(function(item) { return item.key; });
+				var validPeriodKeys = (vm.getProperty("/subPeriods") || []).map(function(item) {
+					return item.key;
+				});
 				periodValid = !!selectedPeriod && validPeriodKeys.indexOf(selectedPeriod) !== -1;
 				if (!periodValid) {
 					var text = selection.type === "M" ? "Select a month." : "Select a quarter.";
@@ -516,6 +555,517 @@ sap.ui.define([
 			return plantText + "  |  " + period;
 		},
 
+		_loadDetailsForPeriod: function(period) {
+			var detailModel = this.getView().getModel("detail");
+			var serviceModel = this.getOwnerComponent().getModel();
+			var fromParts = this._parseYmd(period.FromDate);
+			var toParts = this._parseYmd(period.ToDate);
+			var requestId = ++this._detailRequestSerial;
+			var detailsPanel = this.byId("detailsPanel");
+
+			if (detailsPanel && !detailsPanel.getExpanded()) {
+				detailsPanel.setExpanded(true);
+			}
+			this._detailRetryPeriod = period;
+			detailModel.setData({
+				selectedPeriod: period,
+				contextText: period.period + "  |  " + (period.Werks || ""),
+				busy: true,
+				hasData: false,
+				noData: false,
+				errorText: "",
+				valueWarningText: "",
+				rows: [],
+				kpis: [],
+				pipeline: [],
+				leadTime: [],
+				monthlyValue: [],
+				topVendors: [],
+				monthlyChartTitle: "Monthly PR Value by Status",
+				topVendorsChartTitle: "Top Vendors by PR Value"
+			});
+
+			if (!serviceModel) {
+				this._setDetailError("The OData service model is not configured.", requestId);
+				return;
+			}
+			if (!period.Werks || !fromParts || !toParts) {
+				this._setDetailError("The selected period is missing a plant or valid date range.", requestId);
+				return;
+			}
+
+			var filters = [
+				new Filter("werks", FilterOperator.EQ, period.Werks),
+				new Filter("badat_pr", FilterOperator.GE, new Date(fromParts.y, fromParts.m - 1, fromParts.d)),
+				new Filter("badat_pr", FilterOperator.LE, new Date(toParts.y, toParts.m - 1, toParts.d))
+			];
+			this._logInfo("Detail dashboard request", {
+				entitySet: "/ZI_MM_PO_PR_GRN",
+				plant: period.Werks,
+				fromDate: period.FromDate,
+				toDate: period.ToDate,
+				filters: filters
+			});
+
+			serviceModel.read("/ZI_MM_PO_PR_GRN", {
+				filters: filters,
+				success: function(response) {
+					if (requestId !== this._detailRequestSerial) {
+						this._logInfo("Stale detail response ignored", {
+							requestId: requestId
+						});
+						return;
+					}
+					try {
+						var sourceRows = response && Array.isArray(response.results) ? response.results : null;
+						if (!sourceRows) {
+							throw new Error("Unexpected ZI_MM_PO_PR_GRN response structure.");
+						}
+						var result = this._buildDetailDashboard(sourceRows);
+						detailModel.setProperty("/rows", result.rows);
+						detailModel.setProperty("/kpis", result.kpis);
+						detailModel.setProperty("/pipeline", result.pipeline);
+						detailModel.setProperty("/leadTime", result.leadTime);
+						detailModel.setProperty("/monthlyValue", result.monthlyValue);
+						detailModel.setProperty("/topVendors", result.topVendors);
+						detailModel.setProperty("/monthlyChartTitle", result.monthlyChartTitle);
+						detailModel.setProperty("/topVendorsChartTitle", result.topVendorsChartTitle);
+						detailModel.setProperty("/valueWarningText", result.valueWarningText);
+						detailModel.setProperty("/busy", false);
+						detailModel.setProperty("/hasData", sourceRows.length > 0);
+						detailModel.setProperty("/noData", sourceRows.length === 0);
+						this._logInfo("Detail dashboard loaded", {
+							requestId: requestId,
+							rawRows: sourceRows.length,
+							uniquePRLines: result.kpis[0].rawValue,
+							kpis: result.kpis
+						});
+					} catch (error) {
+						this._logError("Detail response processing failed", error);
+						this._setDetailError("The detail response could not be processed. Check the returned field names and values.", requestId);
+					}
+				}.bind(this),
+				error: function(error) {
+					if (requestId !== this._detailRequestSerial) {
+						return;
+					}
+					var parsed = this._parseError(error, "Could not load details for the selected period.");
+					this._logError("Detail dashboard request failed", {
+						status: parsed.status,
+						message: parsed.message,
+						raw: error
+					});
+					this._setDetailError(parsed.message, requestId);
+				}.bind(this)
+			});
+		},
+
+		onRetryDetails: function() {
+			if (this._detailRetryPeriod) {
+				this._loadDetailsForPeriod(this._detailRetryPeriod);
+			}
+		},
+
+		_setDetailError: function(message, requestId) {
+			if (requestId !== this._detailRequestSerial) {
+				return;
+			}
+			var detailModel = this.getView().getModel("detail");
+			detailModel.setProperty("/busy", false);
+			detailModel.setProperty("/hasData", false);
+			detailModel.setProperty("/noData", false);
+			detailModel.setProperty("/errorText", message);
+		},
+
+		_buildDetailDashboard: function(sourceRows) {
+			var rows = sourceRows.map(function(record, index) {
+				var copy = Object.assign({}, record);
+				copy._rowIndex = index;
+				copy.PRQtyValue = this._detailNumber(record.menge_pr);
+				copy.POQtyValue = this._detailNumber(record.menge_po);
+				copy.GRQtyValue = this._detailNumber(record.gr_menge);
+				copy.PendingQtyValue = this._detailNumber(record.pending_qty);
+				copy.PRValue = this._detailNumber(record.rlwrt_pr);
+				copy.UnitPriceValue = this._detailNumber(record.preis_pr);
+				copy.LeadDaysValue = this._detailNumber(record.days_between_pr_po);
+				copy.Currency = String(record.waers_pr || "").trim().toUpperCase();
+				copy.BadatText = this._formatDetailDate(record.badat_pr);
+				copy.PODateText = this._formatDetailDate(record.aedat_po);
+				copy.POReleaseText = this._formatDetailDate(record.release_date);
+				copy.PRReleaseText = this._formatDetailDate(record.FRGDT);
+				copy.DeliveryText = this._formatDetailDate(record.eindt);
+				copy.GRDateText = this._formatDetailDate(record.gr_date);
+				copy.PRLineKey = String(record.banfn || "") + "|" + String(record.bnfpo || "") + (record.banfn || record.bnfpo ? "" : "|" +
+					index);
+				copy.PRQtyText = this._formatQuantity(copy.PRQtyValue, record.meins_pr);
+				copy.POQtyText = this._formatQuantity(copy.POQtyValue, record.meins_po);
+				copy.GRQtyText = this._formatQuantity(copy.GRQtyValue, record.gr_meins);
+				copy.PendingQtyText = this._formatQuantity(copy.PendingQtyValue, record.meins_po);
+				copy.PRUnitPriceText = this._formatDetailCurrency(copy.UnitPriceValue, copy.Currency, 4);
+				copy.PRTotalValueText = this._formatDetailCurrency(copy.PRValue, copy.Currency);
+				copy.GRDocItemText = [record.mjahr, record.ZEILE].filter(function(value) {
+					return !this._isBlank(value);
+				}.bind(this)).join(" / ");
+				return copy;
+			}.bind(this));
+			var lines = this._aggregateDetailPRLines(rows);
+			var statusByPRLine = {};
+			lines.forEach(function(line) {
+				statusByPRLine[line.PRLineKey] = line.Status;
+			});
+			rows.forEach(function(row) {
+				row.Status = statusByPRLine[row.PRLineKey] || "Pending Unknown";
+				row.StatusState = this._detailStatusState(row.Status);
+			}.bind(this));
+			var pipeline = this._buildProcurementPipeline(lines);
+			var leadTime = this._buildLeadTimeDistribution(lines);
+			var currencies = [];
+			lines.forEach(function(line) {
+				var hasMonetaryInput = line.PRValue !== null || (!line.POBlank && line.PendingQtyValue > 0 && line.UnitPriceValue !== null);
+				if (line.Currency && hasMonetaryInput && currencies.indexOf(line.Currency) === -1) {
+					currencies.push(line.Currency);
+				}
+			});
+			var singleCurrency = currencies.length === 1 ? currencies[0] : "";
+			var valueWarnings = [];
+			if (currencies.length > 1) {
+				valueWarnings.push("Value charts are unavailable because the selected period contains multiple currencies (" + currencies.join(
+					", ") + ").");
+			}
+			if (lines.some(function(line) {
+					return !line.Currency && (line.PRValue !== null || line.PendingQtyValue > 0);
+				})) {
+				valueWarnings.push("Some lines have no currency. Monetary totals include only rows with a currency code.");
+			}
+			if (lines.some(function(line) {
+					return !line.POBlank && line.PendingQtyValue > 0 && line.UnitPriceValue === null;
+				})) {
+				valueWarnings.push("Some open PR lines have no unit price and are excluded from Value Pending PO.");
+			}
+			var valueWarning = valueWarnings.join(" ");
+			var valueScale = singleCurrency ? 100000 : 1;
+			var valueUnit = singleCurrency ? (singleCurrency === "INR" ? "₹ Lakh" : singleCurrency + " Lakh") : "";
+			var monthlyValue = singleCurrency ? this._buildMonthlyValueByStatus(lines, singleCurrency, valueScale) : [];
+			var topVendors = singleCurrency ? this._buildTopVendors(lines, singleCurrency, valueScale) : [];
+			var totalPRValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, false) : null;
+			var pendingPOValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, true) : null;
+			var noPOCount = lines.filter(function(line) {
+				return line.POBlank;
+			}).length;
+			var openPRCount = lines.filter(function(line) {
+				return !line.POBlank && line.PendingQtyValue !== null && line.PendingQtyValue > 0;
+			}).length;
+			var fullyReceivedCount = lines.filter(function(line) {
+				return !line.POBlank && line.PendingQtyValue === 0;
+			}).length;
+			var noPORate = lines.length ? (noPOCount / lines.length) * 100 : 0;
+			var kpis = [
+				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length),
+				this._kpi("Total PR Value", totalPRValue === null ? "—" : this._formatCurrency(totalPRValue, singleCurrency),
+					"Sum of PR total price", "sap-icon://money-bills", totalPRValue),
+				this._kpi("PO Coverage", noPORate.toFixed(1), "PR lines with blank PO", "sap-icon://chain-link", noPORate, "%"),
+				this._kpi("Fully Received", this._formatInteger(fullyReceivedCount), "PO present and pending quantity = 0", "sap-icon://accept",
+					fullyReceivedCount),
+				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount),
+				this._kpi("Value Pending PO", pendingPOValue === null ? "—" : this._formatCurrency(pendingPOValue, singleCurrency),
+					"Pending quantity × unit price", "sap-icon://money-bills", pendingPOValue)
+			];
+			return {
+				rows: rows,
+				kpis: kpis,
+				pipeline: pipeline,
+				leadTime: leadTime,
+				monthlyValue: monthlyValue,
+				topVendors: topVendors,
+				monthlyChartTitle: "Monthly PR Value by Status" + (valueUnit ? " (" + valueUnit + ")" : ""),
+				topVendorsChartTitle: "Top Vendors by PR Value" + (valueUnit ? " (" + valueUnit + ")" : ""),
+				valueWarningText: valueWarning
+			};
+		},
+
+		_kpi: function(label, value, hint, icon, rawValue, unit) {
+			return {
+				label: label,
+				value: value,
+				hint: hint,
+				icon: icon,
+				rawValue: rawValue,
+				unit: unit || ""
+			};
+		},
+
+		_aggregateDetailPRLines: function(rows) {
+			var byKey = {};
+			var lines = [];
+			rows.forEach(function(row) {
+				var line = byKey[row.PRLineKey];
+				if (!line) {
+					line = Object.assign({}, row, {
+						TotalGRQty: 0,
+						_grDocumentKeys: {}
+					});
+					byKey[row.PRLineKey] = line;
+					lines.push(line);
+				}
+				var grKey = [row.mblnr, row.mjahr, row.ZEILE].join("|");
+				if (this._isBlank(row.mblnr) && this._isBlank(row.mjahr)) {
+					grKey += row._rowIndex;
+				}
+				if (row.GRQtyValue !== null && !line._grDocumentKeys[grKey]) {
+					line.TotalGRQty += row.GRQtyValue;
+					line._grDocumentKeys[grKey] = true;
+				}
+			}.bind(this));
+			lines.forEach(function(line) {
+				line.POBlank = this._isBlank(line.ebeln);
+				line.Status = this._detailStatus(line);
+				delete line._grDocumentKeys;
+			}.bind(this));
+			return lines;
+		},
+
+		_detailStatus: function(line) {
+			if (line.POBlank) {
+				return "No PO Yet";
+			}
+			if (line.PendingQtyValue === null) {
+				return "Pending Unknown";
+			}
+			if (line.PendingQtyValue < 0) {
+				return "Over-Received";
+			}
+			if (line.PendingQtyValue === 0) {
+				return "Fully Received";
+			}
+			if (line.TotalGRQty > 0) {
+				return "PO-GR Partial";
+			}
+			return "PO-Awaiting GR";
+		},
+
+		_detailStatusState: function(status) {
+			if (status === "Fully Received") {
+				return "Success";
+			}
+			if (status === "PO-GR Partial" || status === "PO-Awaiting GR") {
+				return "Warning";
+			}
+			if (status === "No PO Yet" || status === "Over-Received") {
+				return "Error";
+			}
+			return "None";
+		},
+
+		_buildProcurementPipeline: function(lines) {
+			var includedStatuses = ["No PO Yet", "PO-GR Partial", "Fully Received", "Over-Received"];
+			return includedStatuses.map(function(status) {
+				return {
+					Status: status,
+					PRLines: lines.filter(function(line) {
+						return line.Status === status;
+					}).length
+				};
+			});
+		},
+
+		_buildLeadTimeDistribution: function(lines) {
+			var buckets = [{
+				Bucket: "0–3 days",
+				Min: 0,
+				Max: 3,
+				PRLines: 0
+			}, {
+				Bucket: "4–7 days",
+				Min: 4,
+				Max: 7,
+				PRLines: 0
+			}, {
+				Bucket: "8–15 days",
+				Min: 8,
+				Max: 15,
+				PRLines: 0
+			}, {
+				Bucket: "16–30 days",
+				Min: 16,
+				Max: 30,
+				PRLines: 0
+			}, {
+				Bucket: "31–60 days",
+				Min: 31,
+				Max: 60,
+				PRLines: 0
+			}, {
+				Bucket: "60+ days",
+				Min: 61,
+				Max: Number.MAX_VALUE,
+				PRLines: 0
+			}];
+			lines.forEach(function(line) {
+				if (line.POBlank || line.LeadDaysValue === null || line.LeadDaysValue < 0) {
+					return;
+				}
+				var bucket = buckets.filter(function(item) {
+					return line.LeadDaysValue >= item.Min && line.LeadDaysValue <= item.Max;
+				})[0];
+				if (bucket) {
+					bucket.PRLines += 1;
+				}
+			});
+			return buckets;
+		},
+
+		_buildMonthlyValueByStatus: function(lines, currency, valueScale) {
+			var byMonth = {};
+			lines.forEach(function(line) {
+				if (!line.BadatText || !line.Currency || line.Currency !== currency || line.PRValue === null) {
+					return;
+				}
+				var date = this._dateValue(line.badat_pr);
+				if (!date) {
+					return;
+				}
+				var monthKey = date.getFullYear() * 100 + date.getMonth();
+				if (!byMonth[monthKey]) {
+					byMonth[monthKey] = {
+						Month: MONTHS_SHORT[date.getMonth()] + " " + date.getFullYear(),
+						SortKey: monthKey,
+						NoPOYetValue: 0,
+						POGRPartialValue: 0,
+						FullyReceivedValue: 0,
+						OverReceivedValue: 0
+					};
+				}
+				var field = {
+					"No PO Yet": "NoPOYetValue",
+					"PO-GR Partial": "POGRPartialValue",
+					"Fully Received": "FullyReceivedValue",
+					"Over-Received": "OverReceivedValue"
+				}[line.Status];
+				if (field) {
+					byMonth[monthKey][field] += line.PRValue / valueScale;
+				}
+			}.bind(this));
+			return Object.keys(byMonth).map(function(key) {
+				return byMonth[key];
+			}).sort(function(a, b) {
+				return a.SortKey - b.SortKey;
+			});
+		},
+
+		_buildTopVendors: function(lines, currency, valueScale) {
+			var vendors = {};
+			lines.forEach(function(line) {
+				if (!line.Currency || line.Currency !== currency || line.PRValue === null) {
+					return;
+				}
+				var key = String(line.lifnr || line.name1 || "Unknown vendor").trim();
+				if (!vendors[key]) {
+					vendors[key] = {
+						Vendor: String(line.name1 || line.lifnr || "Unknown vendor").trim(),
+						PRValue: 0
+					};
+				}
+				vendors[key].PRValue += line.PRValue / valueScale;
+			});
+			return Object.keys(vendors).map(function(key) {
+					return vendors[key];
+				})
+				.sort(function(a, b) {
+					return b.PRValue - a.PRValue;
+				}).slice(0, 10);
+		},
+
+		_sumLineValues: function(lines, currency, pendingOnly) {
+			var total = 0;
+			lines.forEach(function(line) {
+				if (pendingOnly) {
+					if (!line.POBlank && line.PendingQtyValue > 0 && line.Currency === currency) {
+						total += this._calculateValuePendingPO(line);
+					}
+				} else if (line.Currency === currency && line.PRValue !== null) {
+					total += line.PRValue;
+				}
+			}.bind(this));
+			return total;
+		},
+
+		_calculateValuePendingPO: function(line) {
+			if (line.POBlank || line.PendingQtyValue === null || line.PendingQtyValue <= 0 || line.UnitPriceValue === null) {
+				return 0;
+			}
+			return line.PendingQtyValue * line.UnitPriceValue;
+		},
+
+		_detailNumber: function(value) {
+			if (value === null || value === undefined || String(value).trim() === "") {
+				return null;
+			}
+			var number = Number(String(value).trim().replace(/,/g, ""));
+			return isFinite(number) ? number : null;
+		},
+
+		_isBlank: function(value) {
+			return value === null || value === undefined || String(value).trim() === "";
+		},
+
+		_formatInteger: function(value) {
+			return new Intl.NumberFormat("en-IN", {
+				maximumFractionDigits: 0
+			}).format(value || 0);
+		},
+
+		_formatQuantity: function(value, unit) {
+			if (value === null || value === undefined) {
+				return "";
+			}
+			var formatted = new Intl.NumberFormat("en-IN", {
+				maximumFractionDigits: 3
+			}).format(value);
+			return formatted + (unit ? " " + unit : "");
+		},
+
+		_formatDetailCurrency: function(value, currency, precision) {
+			if (value === null || value === undefined) {
+				return "";
+			}
+			var lakhs = (value / 100000).toFixed(precision === undefined ? 2 : precision);
+			return (currency === "INR" ? "₹" : (currency ? currency + " " : "")) + lakhs + " L";
+		},
+
+		_formatCurrency: function(value, currency) {
+			if (!currency || value === null || value === undefined) {
+				return "—";
+			}
+			var lakhValue = value / 100000;
+			var precision = Math.abs(lakhValue) < 0.1 && lakhValue !== 0 ? 4 : 2;
+			var lakhs = lakhValue.toFixed(precision);
+			return (currency === "INR" ? "₹" : currency + " ") + lakhs + " L";
+		},
+
+		_dateValue: function(value) {
+			if (value === null || value === undefined || String(value).trim() === "") {
+				return null;
+			}
+			if (value instanceof Date && !isNaN(value.getTime())) {
+				return value;
+			}
+			var dateMatch = /\/Date\((-?\d+)\)\//.exec(String(value || ""));
+			if (dateMatch) {
+				return new Date(parseInt(dateMatch[1], 10));
+			}
+			var parts = this._parseYmd(value);
+			if (parts) {
+				return new Date(parts.y, parts.m - 1, parts.d);
+			}
+			var parsed = new Date(value);
+			return isNaN(parsed.getTime()) ? null : parsed;
+		},
+
+		_formatDetailDate: function(value) {
+			var date = this._dateValue(value);
+			return date ? ("0" + date.getDate()).slice(-2) + " " + MONTHS_SHORT[date.getMonth()] + " " + date.getFullYear() : "";
+		},
+
 		_processPeriodWiseResponse: function(response, reportType) {
 			if (!response || !Array.isArray(response.results)) {
 				throw new Error("Unexpected PRPOGRN_QuantitySet response structure.");
@@ -559,8 +1109,7 @@ sap.ui.define([
 			var month = from ? from.m : (parseInt(record.Month, 10) || NaN);
 			var monthRange = !!(from && to && from.y === to.y && from.m === to.m && from.d === 1 &&
 				to.d === new Date(to.y, to.m, 0).getDate());
-			var quarterRange = !!(from && to && from.y === to.y && from.d === 1 &&
-				[1, 4, 7, 10].indexOf(from.m) !== -1 && to.m === from.m + 2 &&
+			var quarterRange = !!(from && to && from.y === to.y && from.d === 1 && [1, 4, 7, 10].indexOf(from.m) !== -1 && to.m === from.m + 2 &&
 				to.d === new Date(to.y, to.m, 0).getDate());
 			var yearRange = !!(from && to && from.y === to.y && from.m === 1 && from.d === 1 && to.m === 12 && to.d === 31);
 
@@ -652,7 +1201,7 @@ sap.ui.define([
 						text: "Quantity"
 					},
 					label: {
-							formatString: "#,##0"
+						formatString: "#,##0"
 					}
 				},
 				categoryAxis: {
@@ -671,7 +1220,108 @@ sap.ui.define([
 			});
 		},
 
-		onChartRenderComplete: function() {
+		_configureDetailCharts: function() {
+			var pipeline = this.byId("detailPipelineChart");
+			var leadTime = this.byId("detailLeadTimeChart");
+			var monthlyValue = this.byId("detailMonthlyValueChart");
+			var topVendors = this.byId("detailTopVendorsChart");
+			var common = {
+				title: {
+					visible: false
+				},
+				plotArea: {
+					dataLabel: {
+						visible: true,
+						hideWhenOverlap: false,
+						formatString: "#,##0.####"
+					},
+					gridline: {
+						visible: true
+					}
+				},
+				valueAxis: {
+					title: {
+						visible: false
+					},
+					label: {
+						formatString: "#,##0.####"
+					}
+				},
+				categoryAxis: {
+					title: {
+						visible: false
+					}
+				},
+				legend: {
+					visible: false
+				},
+				interaction: {
+					selectability: {
+						mode: "SINGLE"
+					}
+				}
+			};
+			var propertiesWithPalette = function(palette) {
+				return {
+					title: common.title,
+					plotArea: Object.assign({}, common.plotArea, {
+						colorPalette: palette
+					}),
+					valueAxis: common.valueAxis,
+					categoryAxis: common.categoryAxis,
+					legend: common.legend,
+					interaction: common.interaction
+				};
+			};
+			pipeline.setVizProperties(propertiesWithPalette(["#d04a4a", "#e9730c", "#16804a", "#8a6bbf"]));
+			leadTime.setVizProperties(propertiesWithPalette(["#16804a"]));
+			topVendors.setVizProperties(propertiesWithPalette(["#16804a"]));
+			monthlyValue.setVizProperties({
+				title: {
+					visible: false
+				},
+				plotArea: {
+					colorPalette: ["#d04a4a", "#e9730c", "#16804a", "#8a6bbf"],
+					dataLabel: {
+						visible: true,
+						hideWhenOverlap: false,
+						formatString: "#,##0.####"
+					},
+					gridline: {
+						visible: true
+					}
+				},
+				valueAxis: {
+					title: {
+						visible: false
+					},
+					label: {
+						formatString: "#,##0.####"
+					}
+				},
+				categoryAxis: {
+					title: {
+						visible: false
+					}
+				},
+				legend: {
+					visible: true,
+					position: "bottom"
+				},
+				interaction: {
+					selectability: {
+						mode: "SINGLE"
+					}
+				}
+			});
+		},
+
+		onDetailChartRenderComplete: function(event) {
+			this._connectChartPopover(event.getSource());
+		},
+
+		onChartRenderComplete: function(event) {
+			this._connectChartPopover(event.getSource());
 			if (!this._fitChartPending) {
 				return;
 			}
@@ -683,7 +1333,9 @@ sap.ui.define([
 			// ChartContainer zoom can leave a previous horizontal zoom window active.
 			// Zoom out to the fit-to-data view whenever a new response is rendered.
 			for (var i = 0; i < 10; i += 1) {
-				chart.zoom({ direction: "out" });
+				chart.zoom({
+					direction: "out"
+				});
 			}
 		},
 
@@ -756,12 +1408,36 @@ sap.ui.define([
 				source: source,
 				period: item
 			});
-			// Hook for the detailed dashboard (next step): use item.Werks, item.FromDate, item.ToDate.
+			this._loadDetailsForPeriod(item);
 		},
 
 		_clearPeriodSelection: function() {
 			var vm = this.getView().getModel("screen1");
+			this._detailRequestSerial += 1;
+			this._detailRetryPeriod = null;
 			vm.setProperty("/selectedPeriod", null);
+			var detailModel = this.getView().getModel("detail");
+			if (detailModel) {
+				detailModel.setData({
+					selectedPeriod: null,
+					contextText: "",
+					busy: false,
+					hasData: false,
+					noData: false,
+					errorText: "",
+					valueWarningText: "",
+					rows: [],
+					kpis: [],
+					pipeline: [],
+					leadTime: [],
+					monthlyValue: [],
+					topVendors: []
+				});
+			}
+			var detailsPanel = this.byId("detailsPanel");
+			if (detailsPanel && detailsPanel.getExpanded()) {
+				detailsPanel.setExpanded(false);
+			}
 			this._syncing = true;
 			try {
 				var table = this.byId("periodTable");
@@ -770,7 +1446,9 @@ sap.ui.define([
 				}
 				var chart = this.byId("quantityChart");
 				if (chart) {
-					chart.vizSelection([], { clearSelection: true });
+					chart.vizSelection([], {
+						clearSelection: true
+					});
 				}
 			} catch (error) {
 				this._logWarn("Could not clear prior period selection", error);
