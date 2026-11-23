@@ -113,7 +113,7 @@ sap.ui.define([
 				monthlyValue: [],
 				topVendors: [],
 				monthlyChartTitle: "Monthly PR Value by Status",
-				topVendorsChartTitle: "Top Vendors by PR Value"
+				topVendorsChartTitle: "Top Vendors – PR Value"
 			}), "detail");
 
 			this._updateSubPeriods(true);
@@ -566,6 +566,8 @@ sap.ui.define([
 			if (detailsPanel && !detailsPanel.getExpanded()) {
 				detailsPanel.setExpanded(true);
 			}
+			// Bring the expanded detail section into view after the panel has rendered.
+			this._scrollDetailsPanelIntoView();
 			this._detailRetryPeriod = period;
 			detailModel.setData({
 				selectedPeriod: period,
@@ -582,7 +584,7 @@ sap.ui.define([
 				monthlyValue: [],
 				topVendors: [],
 				monthlyChartTitle: "Monthly PR Value by Status",
-				topVendorsChartTitle: "Top Vendors by PR Value"
+				topVendorsChartTitle: "Top Vendors – PR Value"
 			});
 
 			if (!serviceModel) {
@@ -675,6 +677,35 @@ sap.ui.define([
 			detailModel.setProperty("/hasData", false);
 			detailModel.setProperty("/noData", false);
 			detailModel.setProperty("/errorText", message);
+		},
+
+		_scrollDetailsPanelIntoView: function() {
+			var detailsPanel = this.byId("detailsPanel");
+			var page = this.byId("page");
+			if (!detailsPanel) {
+				return;
+			}
+			// Wait for the panel's expand animation, then scroll the SAPUI5 Page scroller (not the window).
+			setTimeout(function() {
+				var domRef = detailsPanel.getDomRef();
+				var pageDom = page && page.getDomRef();
+				var pageScroller = pageDom && pageDom.querySelector(".sapMPageEnableScrolling");
+				if (domRef && pageScroller && page && page.scrollTo) {
+					var targetTop = pageScroller.scrollTop + domRef.getBoundingClientRect().top - pageScroller.getBoundingClientRect().top;
+					page.scrollTo(Math.max(0, targetTop), 350);
+					// Give keyboard and screen-reader focus to the newly opened dashboard.
+					if (detailsPanel.focus) {
+						setTimeout(function() {
+							detailsPanel.focus();
+						}, 380);
+					}
+				} else if (domRef && domRef.scrollIntoView) {
+					domRef.scrollIntoView({
+						behavior: "smooth",
+						block: "start"
+					});
+				}
+			}, 350);
 		},
 
 		_buildDetailDashboard: function(sourceRows) {
@@ -783,7 +814,7 @@ sap.ui.define([
 				monthlyValue: monthlyValue,
 				topVendors: topVendors,
 				monthlyChartTitle: "Monthly PR Value by Status" + (valueUnit ? " (" + valueUnit + ")" : ""),
-				topVendorsChartTitle: "Top Vendors by PR Value" + (valueUnit ? " (" + valueUnit + ")" : ""),
+				topVendorsChartTitle: "Top Vendors – PR Value" + (valueUnit ? " (" + valueUnit + ")" : ""),
 				valueWarningText: valueWarning
 			};
 		},
@@ -864,8 +895,8 @@ sap.ui.define([
 		},
 
 		_buildProcurementPipeline: function(lines) {
-			// Pipeline counts distinct PR items by status; PO-Awaiting GR and IR are omitted from this chart.
-			var includedStatuses = ["No PO Yet", "PO-GR Partial", "Fully Received", "Over-Received"];
+			// Pipeline shows only the three requested statuses; awaiting-GR, over-received, and IR are omitted.
+			var includedStatuses = ["No PO Yet", "PO-GR Partial", "Fully Received"];
 			return includedStatuses.map(function(status) {
 				return {
 					Status: status,
@@ -941,15 +972,13 @@ sap.ui.define([
 						SortKey: monthKey,
 						NoPOYetValue: 0,
 						POGRPartialValue: 0,
-						FullyReceivedValue: 0,
-						OverReceivedValue: 0
+						FullyReceivedValue: 0
 					};
 				}
 				var field = {
 					"No PO Yet": "NoPOYetValue",
 					"PO-GR Partial": "POGRPartialValue",
-					"Fully Received": "FullyReceivedValue",
-					"Over-Received": "OverReceivedValue"
+					"Fully Received": "FullyReceivedValue"
 				}[line.Status];
 				if (field) {
 					byMonth[monthKey][field] += line.PRValue / valueScale;
@@ -1248,7 +1277,7 @@ sap.ui.define([
 					dataLabel: {
 						visible: true,
 						hideWhenOverlap: false,
-						formatString: "#,##0.####"
+						formatString: "#,##0"
 					},
 					gridline: {
 						visible: true
@@ -1259,7 +1288,7 @@ sap.ui.define([
 						visible: false
 					},
 					label: {
-						formatString: "#,##0.####"
+						formatString: "#,##0"
 					}
 				},
 				categoryAxis: {
@@ -1288,19 +1317,47 @@ sap.ui.define([
 					interaction: common.interaction
 				};
 			};
-			pipeline.setVizProperties(propertiesWithPalette(["#d04a4a", "#e9730c", "#16804a", "#8a6bbf"]));
-			leadTime.setVizProperties(propertiesWithPalette(["#16804a"]));
-			topVendors.setVizProperties(propertiesWithPalette(["#16804a"]));
+			var pipelineProperties = propertiesWithPalette(["#f04b50", "#1680f5", "#14a65a"]);
+			pipelineProperties.plotArea.dataPointStyle = {
+				rules: [{
+					dataContext: {
+						Status: "No PO Yet"
+					},
+					properties: {
+						color: "#f04b50"
+					}
+				}, {
+					dataContext: {
+						Status: "PO-GR Partial"
+					},
+					properties: {
+						color: "#1680f5"
+					}
+				}, {
+					dataContext: {
+						Status: "Fully Received"
+					},
+					properties: {
+						color: "#14a65a"
+					}
+				}]
+			};
+			pipeline.setVizProperties(pipelineProperties);
+			leadTime.setVizProperties(propertiesWithPalette(["#087df5"]));
+			var topVendorsProperties = propertiesWithPalette(["#087df5"]);
+			topVendorsProperties.plotArea.dataLabel.formatString = "#,##0.0###";
+			topVendorsProperties.valueAxis.label.formatString = "#,##0.0###";
+			topVendors.setVizProperties(topVendorsProperties);
 			monthlyValue.setVizProperties({
 				title: {
 					visible: false
 				},
 				plotArea: {
-					colorPalette: ["#d04a4a", "#e9730c", "#16804a", "#8a6bbf"],
+					colorPalette: ["#f04b50", "#1680f5", "#14a65a"],
 					dataLabel: {
 						visible: true,
 						hideWhenOverlap: false,
-						formatString: "#,##0.####"
+						formatString: "#,##0.0###"
 					},
 					gridline: {
 						visible: true
@@ -1311,7 +1368,7 @@ sap.ui.define([
 						visible: false
 					},
 					label: {
-						formatString: "#,##0.####"
+						formatString: "#,##0.0###"
 					}
 				},
 				categoryAxis: {
@@ -1321,7 +1378,7 @@ sap.ui.define([
 				},
 				legend: {
 					visible: true,
-					position: "bottom"
+					position: "top"
 				},
 				interaction: {
 					selectability: {

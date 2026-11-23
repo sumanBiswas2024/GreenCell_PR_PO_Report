@@ -215,12 +215,16 @@
 										</FlexBox>
 										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
 											<VBox class="prpoDetailChartCard">
-												<cc:ChartContainer id="detailPipelineContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+												<HBox class="prpoDetailChartHeading" alignItems="Center">
+													<core:Icon src="sap-icon://process"/>
+													<Title text="Procurement Pipeline (PR Lines)" level="H3"/>
+												</HBox>
+								<cc:ChartContainer id="detailPipelineContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
 													showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://process" title="Procurement Pipeline (PR Lines)">
 															<cc:content>
-																<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+										<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/pipeline}">
@@ -237,12 +241,16 @@
 												</cc:ChartContainer>
 											</VBox>
 											<VBox class="prpoDetailChartCard">
-												<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+												<HBox class="prpoDetailChartHeading" alignItems="Center">
+													<core:Icon src="sap-icon://history"/>
+													<Title text="PR – PO Lead Time (Days)" level="H3"/>
+												</HBox>
+								<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
 													showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://history" title="PR – PO Lead Time (Days)">
 															<cc:content>
-																<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+										<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/leadTime}">
@@ -261,12 +269,16 @@
 										</HBox>
 										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
 											<VBox class="prpoDetailChartCard">
-												<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true"
+												<HBox class="prpoDetailChartHeading" alignItems="Center">
+													<core:Icon src="sap-icon://bar-chart"/>
+													<Title text="{detail>/monthlyChartTitle}" level="H3"/>
+												</HBox>
+								<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
 													showZoom="true" showPersonalization="false" showLegend="true" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
 															<cc:content>
-																<viz:VizFrame id="detailMonthlyValueChart" vizType="stacked_column" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+													<viz:VizFrame id="detailMonthlyValueChart" vizType="stacked_bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/monthlyValue}">
@@ -275,11 +287,11 @@
 																				<viz.data:MeasureDefinition name="No PO Yet Value" value="{detail>NoPOYetValue}"/>
 																				<viz.data:MeasureDefinition name="PO-GR Partial Value" value="{detail>POGRPartialValue}"/>
 																				<viz.data:MeasureDefinition name="Fully Received Value" value="{detail>FullyReceivedValue}"/>
-																				<viz.data:MeasureDefinition name="Over-Received Value" value="{detail>OverReceivedValue}"/>
+
 																			</viz.data:measures>
 																		</viz.data:FlattenedDataset>
 																	</viz:dataset>
-																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="No PO Yet Value,PO-GR Partial Value,Fully Received Value,Over-Received Value"/>
+													<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="No PO Yet Value,PO-GR Partial Value,Fully Received Value"/>
 																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Month"/></viz:feeds>
 																</viz:VizFrame>
 															</cc:content>
@@ -288,12 +300,16 @@
 												</cc:ChartContainer>
 											</VBox>
 											<VBox class="prpoDetailChartCard">
-												<cc:ChartContainer id="detailTopVendorsContainer" width="100%" height="17rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+												<HBox class="prpoDetailChartHeading" alignItems="Center">
+													<core:Icon src="sap-icon://trophy"/>
+													<Title text="{detail>/topVendorsChartTitle}" level="H3"/>
+												</HBox>
+								<cc:ChartContainer id="detailTopVendorsContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
 													showPersonalization="false" showLegend="false" showLegendButton="false">
 													<cc:content>
 														<cc:ChartContainerContent icon="sap-icon://trophy" title="{detail>/topVendorsChartTitle}">
 															<cc:content>
-																<viz:VizFrame id="detailTopVendorsChart" vizType="bar" width="100%" height="13rem" uiConfig="{applicationSet:'fiori'}"
+										<viz:VizFrame id="detailTopVendorsChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
 																	renderComplete="onDetailChartRenderComplete">
 																	<viz:dataset>
 																		<viz.data:FlattenedDataset data="{detail>/topVendors}">
