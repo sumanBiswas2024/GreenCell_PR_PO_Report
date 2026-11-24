@@ -194,6 +194,13 @@
     box-shadow: 0 0.2rem 0.65rem rgba(25, 90, 48, 0.16);
 }
 
+.prpoKpiTonePRLines.sapMCustomTile { background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 88%); border-color: #d5e4fa; }
+.prpoKpiTonePRValue.sapMCustomTile { background: linear-gradient(135deg, #f6f1ff 0%, #ffffff 88%); border-color: #e4d9f8; }
+.prpoKpiToneCoverage.sapMCustomTile { background: linear-gradient(135deg, #effaf8 0%, #ffffff 88%); border-color: #d0ece6; }
+.prpoKpiToneReceived.sapMCustomTile { background: linear-gradient(135deg, #eff8f0 0%, #ffffff 88%); border-color: #d4e9d7; }
+.prpoKpiToneOpenPR.sapMCustomTile { background: linear-gradient(135deg, #fff7eb 0%, #ffffff 88%); border-color: #f1dfc2; }
+.prpoKpiTonePendingValue.sapMCustomTile { background: linear-gradient(135deg, #fff2f5 0%, #ffffff 88%); border-color: #f0d9e0; }
+
 .prpoKpiCardActive.sapMCustomTile {
     background: linear-gradient(135deg, #eaf6ed 0%, #f7fbf7 100%);
     border: 2px solid #16804a;
@@ -216,6 +223,13 @@
     padding: 0.65rem;
     font-size: 1.15rem;
 }
+
+.prpoKpiTonePRLines .prpoKpiIcon { color: #2863a8; background: #deebff; }
+.prpoKpiTonePRValue .prpoKpiIcon { color: #7548ad; background: #eee4ff; }
+.prpoKpiToneCoverage .prpoKpiIcon { color: #087f73; background: #d9f1ec; }
+.prpoKpiToneReceived .prpoKpiIcon { color: #16804a; background: #e0f2e3; }
+.prpoKpiToneOpenPR .prpoKpiIcon { color: #ad6508; background: #fff0d8; }
+.prpoKpiTonePendingValue .prpoKpiIcon { color: #b94263; background: #fde7ec; }
 
 .prpoKpiText {
     min-width: 0;
@@ -386,6 +400,26 @@
 
 .prpoContextChip {
     white-space: nowrap;
+}
+
+.prpoDetailContextStatus.sapMObjStatus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.7rem;
+    border-radius: 0.25rem;
+    background: #16804a;
+    border: 1px solid #16804a;
+    white-space: nowrap;
+}
+
+.prpoDetailContextStatus .sapMObjStatusText,
+.prpoDetailContextStatus .sapMObjStatusIcon {
+    color: #fff !important;
+    line-height: 1.25rem;
 }
 
 

@@ -76,7 +76,7 @@
 									<core:Icon src="sap-icon://vertical-bar-chart" class="prpoCardIcon"/>
 									<Title text="PR / PO / GRN Quantity – Periodic Analysis" level="H2" wrapping="true"/>
 									<ToolbarSpacer/>
-									<ObjectStatus text="{screen1>/contextText}" state="Information" inverted="true" class="prpoContextChip"/>
+									<ObjectStatus text="{screen1>/contextText}" state="Success" inverted="true" class="prpoDetailContextStatus"/>
 								</Toolbar>
 							</headerToolbar>
 							<content>
@@ -188,7 +188,7 @@
 											<SegmentedButtonItem key="table" text="Table View" icon="sap-icon://table-view"/>
 										</items>
 									</SegmentedButton>
-									<ObjectStatus text="{detail>/contextText}" state="Success" inverted="true"/>
+									<ObjectStatus text="{detail>/contextText}" state="Success" inverted="true" class="prpoDetailContextStatus"/>
 								</Toolbar>
 							</headerToolbar>
 							<content>

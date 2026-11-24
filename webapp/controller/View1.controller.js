@@ -925,9 +925,24 @@ sap.ui.define([
 				return;
 			}
 			var activeKpi = this.getView().getModel("detail").getProperty("/activeKpi");
+			var toneByFilter = {
+				ALL: "prpoKpiTonePRLines",
+				PR_VALUE: "prpoKpiTonePRValue",
+				PO_COVERAGE: "prpoKpiToneCoverage",
+				FULLY_RECEIVED: "prpoKpiToneReceived",
+				OPEN_PR: "prpoKpiToneOpenPR",
+				VALUE_PENDING: "prpoKpiTonePendingValue"
+			};
+			var toneClasses = Object.keys(toneByFilter).map(function(key) {
+				return toneByFilter[key];
+			});
 			grid.getItems().forEach(function(tile) {
 				var context = tile.getBindingContext("detail");
 				var kpi = context && context.getObject();
+				var toneClass = kpi && toneByFilter[kpi.filterKey];
+				toneClasses.forEach(function(className) {
+					tile.toggleStyleClass(className, className === toneClass);
+				});
 				tile.toggleStyleClass("prpoKpiCardActive", !!kpi && !!activeKpi && kpi.filterKey === activeKpi);
 			});
 		},
