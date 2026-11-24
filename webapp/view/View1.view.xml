@@ -26,16 +26,16 @@
 							<content>
 								<!-- Bare flex row: fields grow/wrap by width, so nothing gets squeezed -->
 								<HBox class="prpoFilterBar" wrap="Wrap" renderType="Bare" alignItems="End">
-									<VBox >
-										<Label text="Report Type" required="false" labelFor="reportType"/>
-										<SegmentedButton id="reportType" width="100%" selectedKey="{screen1>/selection/type}" selectionChange="onReportTypeChange">
-											<items>
+									<!--<VBox >-->
+									<!--	<Label text="Report Type" required="false" labelFor="reportType"/>-->
+									<!--	<SegmentedButton id="reportType" width="100%" selectedKey="{screen1>/selection/type}" selectionChange="onReportTypeChange">-->
+									<!--		<items>-->
 												<!--<SegmentedButtonItem key="M" text="Month"/>-->
 												<!--<SegmentedButtonItem key="Q" text="Quarter"/>-->
-												<SegmentedButtonItem key="Y" text="Year"/>
-											</items>
-										</SegmentedButton>
-									</VBox>
+									<!--			<SegmentedButtonItem key="Y" text="Year"/>-->
+									<!--		</items>-->
+									<!--	</SegmentedButton>-->
+									<!--</VBox>-->
 									<VBox class="prpoField prpoFieldPlant">
 										<Label text="Plant" required="true" labelFor="plantSelect"/>
 										<Input id="plantSelect" width="100%" placeholder="Enter plant code or use value help" value="{screen1>/selection/plant}"
@@ -381,7 +381,7 @@
 													<table:Column width="5.5rem" sortProperty="bnfpo"><Label text="PR Item"/>
 														<table:template><Text text="{detail>bnfpo}"/></table:template>
 													</table:Column>
-													<table:Column width="10rem" sortProperty="Status"><Label text="Status"/>
+													<table:Column width="10rem" sortProperty="Status" filterProperty="Status"><Label text="Status"/>
 														<table:template>
 															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
 																<customData><core:CustomData key="prpostatus" value="{detail>Status}" writeToDom="true"/></customData>
