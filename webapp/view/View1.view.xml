@@ -359,60 +359,62 @@
 										<VBox id="detailTableSection" class="prpoDetailTableCard" visible="{= ${detail>/viewMode} === 'table' }">
 											<Toolbar class="prpoDetailTableToolbar" style="Clear">
 												<core:Icon src="sap-icon://table-view" class="prpoCardIcon"/>
-												<Title text="PR / PO / GR Detail Lines" level="H3"/>
+												<Title text="PR / PO / GR Hierarchy" level="H3"/>
 												<ObjectStatus text="{detail>/tableSummaryText}" state="Information"/>
-												<Text text="{= ${detail>/activeKpiText} ? 'Filtered by: ' + ${detail>/activeKpiText} : '' }" visible="{= !!${detail>/activeKpiText} }"
-													class="prpoDetailActiveFilter"/>
+												<!--<Text text="{= ${detail>/activeKpiText} ? 'Filtered by: ' + ${detail>/activeKpiText} : '' }"-->
+												<!--	visible="{= !!${detail>/activeKpiText} }" class="prpoDetailActiveFilter"/>-->
 												<ToolbarSpacer/>
 												<SearchField id="detailSearch" width="18rem" placeholder="Search PR, PO, vendor, material..." value="{detail>/searchQuery}"
 													liveChange="onDetailSearch" search="onDetailSearch"/>
 												<Button text="Clear Filters" icon="sap-icon://clear-filter" visible="{detail>/hasTableFilters}" press="onClearDetailTableFilters"/>
 												<Button text="Export Excel" icon="sap-icon://excel-attachment" press="onExportDetailTable"/>
 											</Toolbar>
-											<table:Table id="detailsTable" rows="{detail>/visibleRows}" visibleRowCount="8" rowHeight="38" filter="onDetailTableFilter"
-												selectionMode="None" enableColumnReordering="true" alternateRowColors="true" width="100%" class="prpoDetailsGridTable">
+											<Text text="Expand a PR item to view its related PO items and distinct GR document items." class="prpoTreeHint"/>
+											<table:TreeTable id="detailsTable" rows="{path: 'detail>/visibleTreeRows', parameters: {arrayNames: ['children']}}" visibleRowCount="8"
+												rowHeight="38" expandFirstLevel="false" fixedColumnCount="1" selectionMode="None" enableColumnReordering="true" alternateRowColors="true"
+												width="100%" class="prpoDetailsGridTable">
 												<table:noData><Text text="No detail rows match the current filters."/></table:noData>
 												<table:columns>
-													<table:Column width="8.5rem" sortProperty="banfn" filterProperty="banfn"><Label text="PR Number"/>
-														<table:template><Text text="{detail>banfn}"/></table:template>
+													<table:Column width="19rem" sortProperty="NodeLabel"><Label text="PR / PO / GR"/>
+														<table:template><Text text="{detail>NodeLabel}" wrapping="false"/></table:template>
 													</table:Column>
-													<table:Column width="5.5rem" sortProperty="bnfpo" filterProperty="bnfpo"><Label text="PR Item"/>
+													<table:Column width="5.5rem" sortProperty="bnfpo"><Label text="PR Item"/>
 														<table:template><Text text="{detail>bnfpo}"/></table:template>
 													</table:Column>
-													<table:Column width="6rem" sortProperty="werks" filterProperty="werks"><Label text="Plant"/>
+													<table:Column width="6rem" sortProperty="werks"><Label text="Plant"/>
 														<table:template><Text text="{detail>werks}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="badat_pr" filterProperty="badat_pr"><Label text="PR Date"/>
+													<table:Column width="8rem" sortProperty="badat_pr"><Label text="PR Date"/>
 														<table:template><Text text="{detail>BadatText}"/></table:template>
 													</table:Column>
 													<table:Column width="8rem" sortProperty="FRGDT"><Label text="PR Release Date"/>
 														<table:template><Text text="{detail>PRReleaseText}"/></table:template>
 													</table:Column>
-													<table:Column width="10rem" sortProperty="afnam_pr" filterProperty="afnam_pr"><Label text="Requester"/>
+													<table:Column width="10rem" sortProperty="afnam_pr"><Label text="Requester"/>
 														<table:template><Text text="{detail>afnam_pr}"/></table:template>
 													</table:Column>
-													<table:Column width="7rem" sortProperty="ekgrp" filterProperty="ekgrp"><Label text="Purchase Group"/>
+													<table:Column width="8rem" sortProperty="ekgrp"><Label text="Purchase Group"/>
 														<table:template><Text text="{detail>ekgrp}"/></table:template>
 													</table:Column>
-													<table:Column width="15rem" sortProperty="name1" filterProperty="name1"><Label text="Vendor"/>
+													<table:Column width="15rem" sortProperty="name1"><Label text="Vendor"/>
 														<table:template><Text text="{detail>name1}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="Currency" filterProperty="Currency"><Label text="Currency"/>
+													<table:Column width="8rem" sortProperty="Currency"><Label text="Currency"/>
 														<table:template><Text text="{detail>Currency}"/></table:template>
 													</table:Column>
-													<table:Column width="22rem" sortProperty="TXZ01" filterProperty="TXZ01"><Label text="PR Description"/>
+													<table:Column width="22rem" sortProperty="TXZ01"><Label text="PR Description"/>
 														<table:template><Text text="{detail>TXZ01}" wrapping="false"/></table:template>
 													</table:Column>
-													<table:Column width="12rem" sortProperty="matnr" filterProperty="matnr"><Label text="Material"/>
+													<table:Column width="12rem" sortProperty="matnr"><Label text="Material"/>
 														<table:template><Text text="{detail>matnr}"/></table:template>
 													</table:Column>
-													<table:Column width="8.5rem" sortProperty="ebeln" filterProperty="ebeln"><Label text="PO Number"/>
+													<table:Column width="8.5rem" sortProperty="ebeln"><Label text="PO Number"/>
 														<table:template><Text text="{detail>ebeln}"/></table:template>
 													</table:Column>
-													<table:Column width="5.5rem" sortProperty="ebelp" filterProperty="ebelp"><Label text="PO Item"/>
+													<table:Column width="5.5rem" sortProperty="ebelp"><Label text="PO Item"/>
 														<table:template><Text text="{detail>ebelp}"/></table:template>
 													</table:Column>
-													<table:Column width="10rem" sortProperty="Status" filterProperty="Status"><Label text="Status"/>
+													<table:Column width="10rem" sortProperty="Status"><Label text="Status"/>
 														<table:template>
 															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
 																<customData><core:CustomData key="prpostatus" value="{detail>Status}" writeToDom="true"/></customData>
@@ -470,14 +472,14 @@
 													<table:Column width="8rem" sortProperty="days_between_pr_po"><Label text="PR – PO Days"/>
 														<table:template><Text text="{detail>days_between_pr_po}"/></table:template>
 													</table:Column>
-													<table:Column width="9rem" sortProperty="kostl_pr" filterProperty="kostl_pr"><Label text="Cost Center"/>
+													<table:Column width="9rem" sortProperty="kostl_pr"><Label text="Cost Center"/>
 														<table:template><Text text="{detail>kostl_pr}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="sakto_pr" filterProperty="sakto_pr"><Label text="G/L Account"/>
+													<table:Column width="8rem" sortProperty="sakto_pr"><Label text="G/L Account"/>
 														<table:template><Text text="{detail>sakto_pr}"/></table:template>
 													</table:Column>
 												</table:columns>
-											</table:Table>
+											</table:TreeTable>
 										</VBox>
 									</VBox>
 								</VBox>

@@ -111,6 +111,7 @@ sap.ui.define([
 				valueWarningText: "",
 				rows: [],
 				visibleRows: [],
+				visibleTreeRows: [],
 				activeKpi: "",
 				activeKpiText: "",
 				searchQuery: "",
@@ -601,6 +602,7 @@ sap.ui.define([
 				valueWarningText: "",
 				rows: [],
 				visibleRows: [],
+				visibleTreeRows: [],
 				activeKpi: "",
 				activeKpiText: "",
 				searchQuery: "",
@@ -806,19 +808,114 @@ sap.ui.define([
 					return String(row[field] === null || row[field] === undefined ? "" : row[field]).toLowerCase().indexOf(query) !== -1;
 				});
 			}.bind(this));
-			var lineKeys = {};
-			visibleRows.forEach(function(row) {
-				lineKeys[row.PRLineKey] = true;
-			});
-			var lineCount = Object.keys(lineKeys).length;
-			var summary = visibleRows.length + " detail rows · " + lineCount + " PR items";
+			var hierarchy = this._buildDetailHierarchy(visibleRows);
+			var summary = hierarchy.prItemCount + " PR items · " + hierarchy.poItemCount + " PO items · " + hierarchy.grItemCount +
+				" distinct GR items";
 			if (kpi) {
 				summary = kpi.label + " · " + summary;
 			}
 			model.setProperty("/visibleRows", visibleRows);
+			model.setProperty("/visibleTreeRows", hierarchy.rows);
+			// Each KPI/search refresh rebuilds the tree; collapse it so expansions from
+			// the previous result set do not carry over onto unrelated rows.
+			var detailTree = this.byId("detailsTable");
+			if (detailTree && detailTree.collapseAll) {
+				detailTree.collapseAll();
+			}
 			model.setProperty("/activeKpiText", kpi ? kpi.label : "");
 			model.setProperty("/tableSummaryText", summary);
 			model.setProperty("/hasTableFilters", !!filterKey || !!query);
+		},
+
+		_buildDetailHierarchy: function(rows) {
+			var rootsByPRItem = {};
+			var roots = [];
+			var prFields = ["banfn", "bnfpo", "werks", "badat_pr", "BadatText", "FRGDT", "PRReleaseText", "afnam_pr", "TXZ01", "matnr",
+				"Currency", "PRQtyValue", "PRQtyText", "meins_pr", "PRValue", "PRValueLakhValue", "PRTotalValueText", "UnitPriceValue",
+				"UnitPriceLakhValue", "PRUnitPriceText", "kostl_pr", "sakto_pr"
+			];
+			var poFields = ["ekgrp", "name1", "lifnr", "ebeln", "ebelp", "aedat_po", "PODateText", "release_date", "POReleaseText", "eindt",
+				"DeliveryText", "POQtyValue", "POQtyText", "meins_po", "PendingQtyValue", "PendingQtyText", "days_between_pr_po", "LeadDaysValue"
+			];
+			var grFields = ["mblnr", "mjahr", "ZEILE", "GRDateText", "GRQtyValue", "GRQtyText", "gr_meins", "gr_date", "GRDocItemText"];
+			var poItemCount = 0;
+			var grItemCount = 0;
+
+			function clearFields(target, fields) {
+				fields.forEach(function(field) {
+					target[field] = "";
+				});
+			}
+
+			rows.forEach(function(row) {
+				var prKey = row.PRLineKey;
+				var prNode = rootsByPRItem[prKey];
+				if (!prNode) {
+					prNode = Object.assign({}, row, {
+						NodeType: "PR",
+						NodeLabel: "PR " + String(row.banfn || "") + " · Item " + String(row.bnfpo || ""),
+						children: [],
+						_poNodes: {},
+						_grNodes: {}
+					});
+					clearFields(prNode, poFields.concat(grFields));
+					rootsByPRItem[prKey] = prNode;
+					roots.push(prNode);
+				}
+
+				var poNode = null;
+				if (!this._isBlank(row.ebeln)) {
+					var poKey = prKey + "|" + String(row.ebeln) + "|" + String(row.ebelp || "");
+					poNode = prNode._poNodes[poKey];
+					if (!poNode) {
+						poNode = Object.assign({}, row, {
+							NodeType: "PO",
+							NodeLabel: "PO " + String(row.ebeln) + (this._isBlank(row.ebelp) ? "" : " · Item " + String(row.ebelp)),
+							Status: "",
+							StatusState: "None",
+							children: [],
+							_grNodes: {}
+						});
+						clearFields(poNode, prFields.concat(grFields));
+						prNode._poNodes[poKey] = poNode;
+						prNode.children.push(poNode);
+						poItemCount += 1;
+					}
+				}
+
+				if (!this._isBlank(row.mblnr)) {
+					var parentNode = poNode || prNode;
+					var grKey = [row.mblnr, row.mjahr, row.ZEILE].join("|");
+					if (!parentNode._grNodes[grKey]) {
+						var grNode = Object.assign({}, row, {
+							NodeType: "GR",
+							NodeLabel: "GR " + String(row.mblnr) + " · " + String(row.mjahr || "") +
+								(this._isBlank(row.ZEILE) ? "" : " / Item " + String(row.ZEILE)),
+							Status: "",
+							StatusState: "None",
+							children: []
+						});
+						clearFields(grNode, prFields.concat(poFields));
+						parentNode._grNodes[grKey] = true;
+						parentNode.children.push(grNode);
+						grItemCount += 1;
+					}
+				}
+			}.bind(this));
+
+			roots.forEach(function(prNode) {
+				delete prNode._poNodes;
+				delete prNode._grNodes;
+				prNode.children.forEach(function(poNode) {
+					delete poNode._grNodes;
+				});
+			});
+			return {
+				rows: roots,
+				prItemCount: roots.length,
+				poItemCount: poItemCount,
+				grItemCount: grItemCount
+			};
 		},
 
 		_syncKpiCardSelection: function() {
@@ -857,19 +954,34 @@ sap.ui.define([
 		},
 
 		onExportDetailTable: function() {
-			// Export the table's currently filtered and sorted row contexts, not the unfiltered OData response.
-			var table = this.byId("detailsTable");
-			var binding = table && table.getBinding("rows");
-			var length = binding ? binding.getLength() : 0;
-			var rows = binding ? binding.getContexts(0, length).map(function(context) {
-				return context.getObject();
-			}) : [];
+			// Flatten all expanded tree levels so collapsed GR detail rows are included in Excel.
+			var rows = [];
+
+			function appendTreeRows(nodes) {
+				(nodes || []).forEach(function(node) {
+					var row = Object.assign({}, node);
+					delete row.children;
+					delete row._poNodes;
+					delete row._grNodes;
+					rows.push(row);
+					appendTreeRows(node.children);
+				});
+			}
+			appendTreeRows(this.getView().getModel("detail").getProperty("/visibleTreeRows"));
 			if (!rows.length) {
 				this._showMessage("There are no detail rows to export for the current filter.", "Information", false);
 				return;
 			}
 			var EdmType = exportLibrary.EdmType;
 			var columns = [{
+				label: "Level",
+				property: "NodeType",
+				type: EdmType.String
+			}, {
+				label: "PR / PO / GR Item",
+				property: "NodeLabel",
+				type: EdmType.String
+			}, {
 				label: "PR Number",
 				property: "banfn",
 				type: EdmType.String
@@ -1919,6 +2031,7 @@ sap.ui.define([
 					valueWarningText: "",
 					rows: [],
 					visibleRows: [],
+					visibleTreeRows: [],
 					activeKpi: "",
 					activeKpiText: "",
 					searchQuery: "",
