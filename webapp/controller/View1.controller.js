@@ -736,16 +736,14 @@ sap.ui.define([
 			this.byId("detailSearch").setValue("");
 			this._applyDetailTableFilters();
 			this._syncKpiCardSelection();
-			this._scrollDetailTableIntoView();
+			this._focusDetailSectionIntoView("detailTableSection");
 		},
 
 		onDetailViewChange: function(event) {
 			var viewMode = event.getSource().getSelectedKey();
 			var detailModel = this.getView().getModel("detail");
 			detailModel.setProperty("/viewMode", viewMode === "table" ? "table" : "graphical");
-			if (viewMode === "table") {
-				this._scrollDetailTableIntoView();
-			}
+			this._focusDetailSectionIntoView(viewMode === "table" ? "detailTableSection" : "detailGraphicalView");
 		},
 
 		onDetailSearch: function(event) {
@@ -947,26 +945,37 @@ sap.ui.define([
 			});
 		},
 
-		_scrollDetailTableIntoView: function() {
+		_focusDetailSectionIntoView: function(sectionId) {
 			var schedule = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(callback) {
 				setTimeout(callback, 0);
 			};
-			schedule(function() {
-				var section = this.byId("detailTableSection");
+			var attempts = 0;
+			var scrollWhenVisible = function() {
+				var section = this.byId(sectionId);
 				var page = this.byId("page");
 				var domRef = section && section.getDomRef();
+				var rect = domRef && domRef.getBoundingClientRect();
+				if (domRef && (!rect || rect.height === 0) && attempts < 6) {
+					attempts += 1;
+					schedule(scrollWhenVisible);
+					return;
+				}
 				var pageDom = page && page.getDomRef();
 				var pageScroller = pageDom && pageDom.querySelector(".sapMPageEnableScrolling");
 				if (domRef && pageScroller && page && page.scrollTo) {
-					var targetTop = pageScroller.scrollTop + domRef.getBoundingClientRect().top - pageScroller.getBoundingClientRect().top;
-					page.scrollTo(Math.max(0, targetTop), 250);
+					var targetTop = pageScroller.scrollTop + rect.top - pageScroller.getBoundingClientRect().top;
+					page.scrollTo(Math.max(0, targetTop - 8), 250);
 				} else if (domRef && domRef.scrollIntoView) {
 					domRef.scrollIntoView({
 						behavior: "smooth",
 						block: "start"
 					});
 				}
-			}.bind(this));
+			}.bind(this);
+			// Give UI5 two frames to apply the visibility/layout change before measuring.
+			schedule(function() {
+				schedule(scrollWhenVisible);
+			});
 		},
 
 		onExportDetailTable: function() {

@@ -223,7 +223,7 @@
 												</CustomTile>
 											</items>
 										</FlexBox>
-										<VBox class="prpoDetailGraphicalView" visible="{= ${detail>/viewMode} === 'graphical' }">
+										<VBox id="detailGraphicalView" class="prpoDetailGraphicalView" visible="{= ${detail>/viewMode} === 'graphical' }">
 											<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
 												<VBox class="prpoDetailChartCard">
 													<HBox class="prpoDetailChartHeading" alignItems="Center">
