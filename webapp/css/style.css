@@ -197,8 +197,8 @@
 .prpoKpiTonePRLines.sapMCustomTile { background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 88%); border-color: #d5e4fa; }
 .prpoKpiTonePRValue.sapMCustomTile { background: linear-gradient(135deg, #f6f1ff 0%, #ffffff 88%); border-color: #e4d9f8; }
 .prpoKpiToneCoverage.sapMCustomTile { background: linear-gradient(135deg, #effaf8 0%, #ffffff 88%); border-color: #d0ece6; }
-.prpoKpiToneReceived.sapMCustomTile { background: linear-gradient(135deg, #eff8f0 0%, #ffffff 88%); border-color: #d4e9d7; }
-.prpoKpiToneOpenPR.sapMCustomTile { background: linear-gradient(135deg, #fff7eb 0%, #ffffff 88%); border-color: #f1dfc2; }
+.prpoKpiToneReceived.sapMCustomTile { background: linear-gradient(135deg, #fff7eb 0%, #ffffff 88%); border-color: #f1dfc2; }
+.prpoKpiToneOpenPR.sapMCustomTile { background: linear-gradient(135deg, #eff8f0 0%, #ffffff 88%); border-color: #d4e9d7; }
 .prpoKpiTonePendingValue.sapMCustomTile { background: linear-gradient(135deg, #fff2f5 0%, #ffffff 88%); border-color: #f0d9e0; }
 
 .prpoKpiCardActive.sapMCustomTile {
@@ -227,8 +227,8 @@
 .prpoKpiTonePRLines .prpoKpiIcon { color: #2863a8; background: #deebff; }
 .prpoKpiTonePRValue .prpoKpiIcon { color: #7548ad; background: #eee4ff; }
 .prpoKpiToneCoverage .prpoKpiIcon { color: #087f73; background: #d9f1ec; }
-.prpoKpiToneReceived .prpoKpiIcon { color: #16804a; background: #e0f2e3; }
-.prpoKpiToneOpenPR .prpoKpiIcon { color: #ad6508; background: #fff0d8; }
+.prpoKpiToneReceived .prpoKpiIcon { color: #ad6508; background: #fff0d8; }
+.prpoKpiToneOpenPR .prpoKpiIcon { color: #16804a; background: #e0f2e3; }
 .prpoKpiTonePendingValue .prpoKpiIcon { color: #b94263; background: #fde7ec; }
 
 .prpoKpiText {
