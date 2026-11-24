@@ -103,6 +103,7 @@ sap.ui.define([
 			this.getView().setModel(new JSONModel({
 				selectedPeriod: null,
 				contextText: "",
+				viewMode: "graphical",
 				busy: false,
 				hasData: false,
 				noData: false,
@@ -592,6 +593,7 @@ sap.ui.define([
 			detailModel.setData({
 				selectedPeriod: period,
 				contextText: this._buildDetailContextText(period),
+				viewMode: "graphical",
 				busy: true,
 				hasData: false,
 				noData: false,
@@ -725,12 +727,22 @@ sap.ui.define([
 			var detailModel = this.getView().getModel("detail");
 			var currentFilter = detailModel.getProperty("/activeKpi");
 			var nextFilter = currentFilter === kpi.filterKey ? "" : kpi.filterKey;
+			detailModel.setProperty("/viewMode", "table");
 			detailModel.setProperty("/activeKpi", nextFilter);
 			detailModel.setProperty("/searchQuery", "");
 			this.byId("detailSearch").setValue("");
 			this._applyDetailTableFilters();
 			this._syncKpiCardSelection();
 			this._scrollDetailTableIntoView();
+		},
+
+		onDetailViewChange: function(event) {
+			var viewMode = event.getSource().getSelectedKey();
+			var detailModel = this.getView().getModel("detail");
+			detailModel.setProperty("/viewMode", viewMode === "table" ? "table" : "graphical");
+			if (viewMode === "table") {
+				this._scrollDetailTableIntoView();
+			}
 		},
 
 		onDetailSearch: function(event) {
@@ -823,20 +835,25 @@ sap.ui.define([
 		},
 
 		_scrollDetailTableIntoView: function() {
-			var section = this.byId("detailTableSection");
-			var page = this.byId("page");
-			var domRef = section && section.getDomRef();
-			var pageDom = page && page.getDomRef();
-			var pageScroller = pageDom && pageDom.querySelector(".sapMPageEnableScrolling");
-			if (domRef && pageScroller && page && page.scrollTo) {
-				var targetTop = pageScroller.scrollTop + domRef.getBoundingClientRect().top - pageScroller.getBoundingClientRect().top;
-				page.scrollTo(Math.max(0, targetTop), 350);
-			} else if (domRef && domRef.scrollIntoView) {
-				domRef.scrollIntoView({
-					behavior: "smooth",
-					block: "start"
-				});
-			}
+			var schedule = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(callback) {
+				setTimeout(callback, 0);
+			};
+			schedule(function() {
+				var section = this.byId("detailTableSection");
+				var page = this.byId("page");
+				var domRef = section && section.getDomRef();
+				var pageDom = page && page.getDomRef();
+				var pageScroller = pageDom && pageDom.querySelector(".sapMPageEnableScrolling");
+				if (domRef && pageScroller && page && page.scrollTo) {
+					var targetTop = pageScroller.scrollTop + domRef.getBoundingClientRect().top - pageScroller.getBoundingClientRect().top;
+					page.scrollTo(Math.max(0, targetTop), 250);
+				} else if (domRef && domRef.scrollIntoView) {
+					domRef.scrollIntoView({
+						behavior: "smooth",
+						block: "start"
+					});
+				}
+			}.bind(this));
 		},
 
 		onExportDetailTable: function() {
@@ -1861,6 +1878,7 @@ sap.ui.define([
 				detailModel.setData({
 					selectedPeriod: null,
 					contextText: "",
+					viewMode: "graphical",
 					busy: false,
 					hasData: false,
 					noData: false,

@@ -182,6 +182,12 @@
 									<core:Icon src="sap-icon://detail-view" class="prpoCardIcon"/>
 									<Title text="PR / PO / GR Details Dashboard" level="H2"/>
 									<ToolbarSpacer/>
+									<SegmentedButton id="detailViewSwitch" selectedKey="{detail>/viewMode}" selectionChange="onDetailViewChange" class="prpoDetailViewSwitch">
+										<items>
+											<SegmentedButtonItem key="graphical" text="Graphical View" icon="sap-icon://bar-chart"/>
+											<SegmentedButtonItem key="table" text="Table View" icon="sap-icon://table-view"/>
+										</items>
+									</SegmentedButton>
 									<ObjectStatus text="{detail>/contextText}" state="Success" inverted="true"/>
 								</Toolbar>
 							</headerToolbar>
@@ -217,142 +223,146 @@
 												</CustomTile>
 											</items>
 										</FlexBox>
-										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
-											<VBox class="prpoDetailChartCard">
-												<HBox class="prpoDetailChartHeading" alignItems="Center">
-													<core:Icon src="sap-icon://process"/>
-													<Title text="Procurement Pipeline (PR Lines)" level="H3"/>
-												</HBox>
-												<cc:ChartContainer id="detailPipelineContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
-													showPersonalization="false" showLegend="false" showLegendButton="false">
-													<cc:content>
-														<cc:ChartContainerContent icon="sap-icon://process" title="Procurement Pipeline (PR Lines)">
-															<cc:content>
-																<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
-																	renderComplete="onDetailChartRenderComplete">
-																	<viz:dataset>
-																		<viz.data:FlattenedDataset data="{detail>/pipeline}">
-																			<viz.data:dimensions><viz.data:DimensionDefinition name="Status" value="{detail>Status}"/></viz.data:dimensions>
-																			<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
-																		</viz.data:FlattenedDataset>
-																	</viz:dataset>
-																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
-																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Status"/></viz:feeds>
-																</viz:VizFrame>
-															</cc:content>
-														</cc:ChartContainerContent>
-													</cc:content>
-												</cc:ChartContainer>
-											</VBox>
-											<VBox class="prpoDetailChartCard">
-												<HBox class="prpoDetailChartHeading" alignItems="Center">
-													<core:Icon src="sap-icon://history"/>
-													<Title text="PR – PO Lead Time (Days)" level="H3"/>
-												</HBox>
-												<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="23rem" autoAdjustHeight="false" showFullScreen="true" showZoom="true"
-													showPersonalization="false" showLegend="false" showLegendButton="false">
-													<cc:content>
-														<cc:ChartContainerContent icon="sap-icon://history" title="PR – PO Lead Time (Days)">
-															<cc:content>
-																<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="19rem" uiConfig="{applicationSet:'fiori'}"
-																	renderComplete="onDetailChartRenderComplete">
-																	<viz:dataset>
-																		<viz.data:FlattenedDataset data="{detail>/leadTime}">
-																			<viz.data:dimensions><viz.data:DimensionDefinition name="Bucket" value="{detail>Bucket}"/></viz.data:dimensions>
-																			<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
-																		</viz.data:FlattenedDataset>
-																	</viz:dataset>
-																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
-																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Bucket"/></viz:feeds>
-																</viz:VizFrame>
-															</cc:content>
-														</cc:ChartContainerContent>
-													</cc:content>
-												</cc:ChartContainer>
-											</VBox>
-										</HBox>
-										<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
-											<VBox class="prpoDetailChartCard">
-												<HBox class="prpoDetailChartHeading" alignItems="Center">
-													<core:Icon src="sap-icon://bar-chart"/>
-													<Title text="{detail>/monthlyChartTitle}" level="H3"/>
-												</HBox>
-												<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
-													showZoom="true" showPersonalization="false" showLegend="false" showLegendButton="false">
-													<cc:content>
-														<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
-															<cc:content>
-																<viz:VizFrame id="detailMonthlyValueChart" vizType="column" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
-																	renderComplete="onDetailChartRenderComplete">
-																	<viz:dataset>
-																		<viz.data:FlattenedDataset data="{detail>/monthlyValue}">
-																			<viz.data:dimensions><viz.data:DimensionDefinition name="Month" value="{detail>Month}"/></viz.data:dimensions>
-																			<viz.data:measures>
-																				<viz.data:MeasureDefinition name="No PO Yet Value" value="{detail>NoPOYetValue}"/>
-															<viz.data:MeasureDefinition name="PO-Awaiting GR Value" value="{detail>POAwaitingGRValue}"/>
-																				<viz.data:MeasureDefinition name="PO-GR Partial Value" value="{detail>POGRPartialValue}"/>
-																				<viz.data:MeasureDefinition name="Fully Received Value" value="{detail>FullyReceivedValue}"/>
-																			</viz.data:measures>
-																		</viz.data:FlattenedDataset>
-																	</viz:dataset>
-													<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="No PO Yet Value,PO-Awaiting GR Value,PO-GR Partial Value,Fully Received Value"/>
-																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Month"/></viz:feeds>
-																</viz:VizFrame>
-															</cc:content>
-														</cc:ChartContainerContent>
-													</cc:content>
-												</cc:ChartContainer>
-												<HBox class="prpoDetailLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendNoPO"/>
-														<Text text="No PO Yet"/>
+										<VBox class="prpoDetailGraphicalView" visible="{= ${detail>/viewMode} === 'graphical' }">
+											<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
+												<VBox class="prpoDetailChartCard">
+													<HBox class="prpoDetailChartHeading" alignItems="Center">
+														<core:Icon src="sap-icon://process"/>
+														<Title text="Procurement Pipeline (PR Lines)" level="H3"/>
 													</HBox>
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendAwaiting"/>
-														<Text text="PO-Awaiting GR"/>
+													<cc:ChartContainer id="detailPipelineContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+														showPersonalization="false" showLegend="false" showLegendButton="false">
+														<cc:content>
+															<cc:ChartContainerContent icon="sap-icon://process" title="Procurement Pipeline (PR Lines)">
+																<cc:content>
+																	<viz:VizFrame id="detailPipelineChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+																		renderComplete="onDetailChartRenderComplete">
+																		<viz:dataset>
+																			<viz.data:FlattenedDataset data="{detail>/pipeline}">
+																				<viz.data:dimensions><viz.data:DimensionDefinition name="Status" value="{detail>Status}"/></viz.data:dimensions>
+																				<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
+																			</viz.data:FlattenedDataset>
+																		</viz:dataset>
+																		<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
+																			<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Status"/></viz:feeds>
+																	</viz:VizFrame>
+																</cc:content>
+															</cc:ChartContainerContent>
+														</cc:content>
+													</cc:ChartContainer>
+												</VBox>
+												<VBox class="prpoDetailChartCard">
+													<HBox class="prpoDetailChartHeading" alignItems="Center">
+														<core:Icon src="sap-icon://history"/>
+														<Title text="PR – PO Lead Time (Days)" level="H3"/>
 													</HBox>
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendPartial"/>
-														<Text text="PO – GR Partial"/>
+													<cc:ChartContainer id="detailLeadTimeContainer" width="100%" height="23rem" autoAdjustHeight="false" showFullScreen="true" showZoom="true"
+														showPersonalization="false" showLegend="false" showLegendButton="false">
+														<cc:content>
+															<cc:ChartContainerContent icon="sap-icon://history" title="PR – PO Lead Time (Days)">
+																<cc:content>
+																	<viz:VizFrame id="detailLeadTimeChart" vizType="bar" width="100%" height="19rem" uiConfig="{applicationSet:'fiori'}"
+																		renderComplete="onDetailChartRenderComplete">
+																		<viz:dataset>
+																			<viz.data:FlattenedDataset data="{detail>/leadTime}">
+																				<viz.data:dimensions><viz.data:DimensionDefinition name="Bucket" value="{detail>Bucket}"/></viz.data:dimensions>
+																				<viz.data:measures><viz.data:MeasureDefinition name="PR Lines" value="{detail>PRLines}"/></viz.data:measures>
+																			</viz.data:FlattenedDataset>
+																		</viz:dataset>
+																		<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Lines"/>
+																			<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Bucket"/></viz:feeds>
+																	</viz:VizFrame>
+																</cc:content>
+															</cc:ChartContainerContent>
+														</cc:content>
+													</cc:ChartContainer>
+												</VBox>
+											</HBox>
+											<HBox class="prpoDetailChartRow" wrap="Wrap" renderType="Bare">
+												<VBox class="prpoDetailChartCard">
+													<HBox class="prpoDetailChartHeading" alignItems="Center">
+														<core:Icon src="sap-icon://bar-chart"/>
+														<Title text="{detail>/monthlyChartTitle}" level="H3"/>
 													</HBox>
-													<HBox class="prpoDetailLegendItem" alignItems="Center">
-														<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendReceived"/>
-														<Text text="Fully Received"/>
+													<cc:ChartContainer id="detailMonthlyValueContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true"
+														showZoom="true" showPersonalization="false" showLegend="false" showLegendButton="false">
+														<cc:content>
+															<cc:ChartContainerContent icon="sap-icon://bar-chart" title="{detail>/monthlyChartTitle}">
+																<cc:content>
+																	<viz:VizFrame id="detailMonthlyValueChart" vizType="column" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+																		renderComplete="onDetailChartRenderComplete">
+																		<viz:dataset>
+																			<viz.data:FlattenedDataset data="{detail>/monthlyValue}">
+																				<viz.data:dimensions><viz.data:DimensionDefinition name="Month" value="{detail>Month}"/></viz.data:dimensions>
+																				<viz.data:measures>
+																					<viz.data:MeasureDefinition name="No PO Yet Value" value="{detail>NoPOYetValue}"/>
+																					<viz.data:MeasureDefinition name="PO-Awaiting GR Value" value="{detail>POAwaitingGRValue}"/>
+																					<viz.data:MeasureDefinition name="PO-GR Partial Value" value="{detail>POGRPartialValue}"/>
+																					<viz.data:MeasureDefinition name="Fully Received Value" value="{detail>FullyReceivedValue}"/>
+																				</viz.data:measures>
+																			</viz.data:FlattenedDataset>
+																		</viz:dataset>
+																		<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="No PO Yet Value,PO-Awaiting GR Value,PO-GR Partial Value,Fully Received Value"/>
+																			<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Month"/></viz:feeds>
+																	</viz:VizFrame>
+																</cc:content>
+															</cc:ChartContainerContent>
+														</cc:content>
+													</cc:ChartContainer>
+													<HBox class="prpoDetailLegend" justifyContent="Center" alignItems="Center" wrap="Wrap">
+														<HBox class="prpoDetailLegendItem" alignItems="Center">
+															<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendNoPO"/>
+															<Text text="No PO Yet"/>
+														</HBox>
+														<HBox class="prpoDetailLegendItem" alignItems="Center">
+															<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendAwaiting"/>
+															<Text text="PO-Awaiting GR"/>
+														</HBox>
+														<HBox class="prpoDetailLegendItem" alignItems="Center">
+															<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendPartial"/>
+															<Text text="PO – GR Partial"/>
+														</HBox>
+														<HBox class="prpoDetailLegendItem" alignItems="Center">
+															<core:Icon src="sap-icon://circle-task-2" class="prpoDetailLegendSwatch prpoDetailLegendReceived"/>
+															<Text text="Fully Received"/>
+														</HBox>
 													</HBox>
-												</HBox>
-											</VBox>
-											<VBox class="prpoDetailChartCard">
-												<HBox class="prpoDetailChartHeading" alignItems="Center">
-													<core:Icon src="sap-icon://trophy"/>
-													<Title text="{detail>/topVendorsChartTitle}" level="H3"/>
-												</HBox>
-												<cc:ChartContainer id="detailTopVendorsContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
-													showPersonalization="false" showLegend="false" showLegendButton="false">
-													<cc:content>
-														<cc:ChartContainerContent icon="sap-icon://trophy" title="{detail>/topVendorsChartTitle}">
-															<cc:content>
-																<viz:VizFrame id="detailTopVendorsChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
-																	renderComplete="onDetailChartRenderComplete">
-																	<viz:dataset>
-																		<viz.data:FlattenedDataset data="{detail>/topVendors}">
-																			<viz.data:dimensions><viz.data:DimensionDefinition name="Vendor" value="{detail>Vendor}"/></viz.data:dimensions>
-																			<viz.data:measures><viz.data:MeasureDefinition name="PR Value" value="{detail>PRValue}"/></viz.data:measures>
-																		</viz.data:FlattenedDataset>
-																	</viz:dataset>
-																	<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Value"/>
-																		<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Vendor"/></viz:feeds>
-																</viz:VizFrame>
-															</cc:content>
-														</cc:ChartContainerContent>
-													</cc:content>
-												</cc:ChartContainer>
-											</VBox>
-										</HBox>
-										<VBox id="detailTableSection" class="prpoDetailTableCard">
+												</VBox>
+												<VBox class="prpoDetailChartCard">
+													<HBox class="prpoDetailChartHeading" alignItems="Center">
+														<core:Icon src="sap-icon://trophy"/>
+														<Title text="{detail>/topVendorsChartTitle}" level="H3"/>
+													</HBox>
+													<cc:ChartContainer id="detailTopVendorsContainer" width="100%" height="20rem" autoAdjustHeight="true" showFullScreen="true" showZoom="true"
+														showPersonalization="false" showLegend="false" showLegendButton="false">
+														<cc:content>
+															<cc:ChartContainerContent icon="sap-icon://trophy" title="{detail>/topVendorsChartTitle}">
+																<cc:content>
+																	<viz:VizFrame id="detailTopVendorsChart" vizType="bar" width="100%" height="16rem" uiConfig="{applicationSet:'fiori'}"
+																		renderComplete="onDetailChartRenderComplete">
+																		<viz:dataset>
+																			<viz.data:FlattenedDataset data="{detail>/topVendors}">
+																				<viz.data:dimensions><viz.data:DimensionDefinition name="Vendor" value="{detail>Vendor}"/></viz.data:dimensions>
+																				<viz.data:measures><viz.data:MeasureDefinition name="PR Value" value="{detail>PRValue}"/></viz.data:measures>
+																			</viz.data:FlattenedDataset>
+																		</viz:dataset>
+																		<viz:feeds><viz.feeds:FeedItem uid="valueAxis" type="Measure" values="PR Value"/>
+																			<viz.feeds:FeedItem uid="categoryAxis" type="Dimension" values="Vendor"/></viz:feeds>
+																	</viz:VizFrame>
+																</cc:content>
+															</cc:ChartContainerContent>
+														</cc:content>
+													</cc:ChartContainer>
+												</VBox>
+											</HBox>
+										</VBox>
+										<VBox id="detailTableSection" class="prpoDetailTableCard" visible="{= ${detail>/viewMode} === 'table' }">
 											<Toolbar class="prpoDetailTableToolbar" style="Clear">
 												<core:Icon src="sap-icon://table-view" class="prpoCardIcon"/>
 												<Title text="PR / PO / GR Detail Lines" level="H3"/>
 												<ObjectStatus text="{detail>/tableSummaryText}" state="Information"/>
+												<Text text="{= ${detail>/activeKpiText} ? 'Filtered by: ' + ${detail>/activeKpiText} : '' }" visible="{= !!${detail>/activeKpiText} }"
+													class="prpoDetailActiveFilter"/>
 												<ToolbarSpacer/>
 												<SearchField id="detailSearch" width="18rem" placeholder="Search PR, PO, vendor, material..." value="{detail>/searchQuery}"
 													liveChange="onDetailSearch" search="onDetailSearch"/>
@@ -404,8 +414,7 @@
 													</table:Column>
 													<table:Column width="10rem" sortProperty="Status" filterProperty="Status"><Label text="Status"/>
 														<table:template>
-															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}"
-																inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
+															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
 																<customData><core:CustomData key="prpostatus" value="{detail>Status}" writeToDom="true"/></customData>
 															</ObjectStatus>
 														</table:template>
@@ -431,12 +440,6 @@
 													<table:Column width="5rem" sortProperty="meins_po"><Label text="PO UOM"/>
 														<table:template><Text text="{detail>meins_po}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="GRQtyValue"><Label text="GR Quantity"/>
-														<table:template><Text text="{detail>GRQtyText}"/></table:template>
-													</table:Column>
-													<table:Column width="5rem" sortProperty="gr_meins"><Label text="GR UOM"/>
-														<table:template><Text text="{detail>gr_meins}"/></table:template>
-													</table:Column>
 													<table:Column width="9rem" sortProperty="PendingQtyValue"><Label text="Pending Quantity"/>
 														<table:template><Text text="{detail>PendingQtyText}"/></table:template>
 													</table:Column>
@@ -457,6 +460,12 @@
 													</table:Column>
 													<table:Column width="8rem" sortProperty="gr_date"><Label text="GR Date"/>
 														<table:template><Text text="{detail>GRDateText}"/></table:template>
+													</table:Column>
+													<table:Column width="8rem" sortProperty="GRQtyValue"><Label text="GR Quantity"/>
+														<table:template><Text text="{detail>GRQtyText}"/></table:template>
+													</table:Column>
+													<table:Column width="5rem" sortProperty="gr_meins"><Label text="GR UOM"/>
+														<table:template><Text text="{detail>gr_meins}"/></table:template>
 													</table:Column>
 													<table:Column width="8rem" sortProperty="days_between_pr_po"><Label text="PR – PO Days"/>
 														<table:template><Text text="{detail>days_between_pr_po}"/></table:template>

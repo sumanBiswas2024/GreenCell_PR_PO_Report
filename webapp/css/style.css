@@ -115,6 +115,25 @@
     color: var(--prpo-muted);
 }
 
+.prpoDetailViewSwitch {
+    margin-inline-end: 0.65rem;
+}
+
+.prpoDetailGraphicalView {
+    gap: 0.85rem;
+}
+
+.prpoDetailActiveFilter {
+    color: #285b3a;
+    background: #edf7ef;
+    border: 1px solid #cfe5d3;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .prpoDetailContent,
 .prpoDetailData {
     gap: 0.85rem;
