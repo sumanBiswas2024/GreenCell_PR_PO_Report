@@ -77,7 +77,8 @@ sap.ui.define([
 				contextText: "",
 				selection: {
 					plant: "",
-					type: "M",
+					// type: "M",
+					type: "Y",
 					year: String(currentYear),
 					subPeriod: ""
 				},

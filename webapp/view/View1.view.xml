@@ -26,6 +26,16 @@
 							<content>
 								<!-- Bare flex row: fields grow/wrap by width, so nothing gets squeezed -->
 								<HBox class="prpoFilterBar" wrap="Wrap" renderType="Bare" alignItems="End">
+									<VBox >
+										<Label text="Report Type" required="false" labelFor="reportType"/>
+										<SegmentedButton id="reportType" width="100%" selectedKey="{screen1>/selection/type}" selectionChange="onReportTypeChange">
+											<items>
+												<!--<SegmentedButtonItem key="M" text="Month"/>-->
+												<!--<SegmentedButtonItem key="Q" text="Quarter"/>-->
+												<SegmentedButtonItem key="Y" text="Year"/>
+											</items>
+										</SegmentedButton>
+									</VBox>
 									<VBox class="prpoField prpoFieldPlant">
 										<Label text="Plant" required="true" labelFor="plantSelect"/>
 										<Input id="plantSelect" width="100%" placeholder="Enter plant code or use value help" value="{screen1>/selection/plant}"
@@ -36,16 +46,6 @@
 												<core:Item key="{screen1>Plant}" text="{= ${screen1>Plant} + ' – ' + ${screen1>PlantName} }"/>
 											</suggestionItems>
 										</Input>
-									</VBox>
-									<VBox class="prpoField prpoFieldType">
-										<Label text="Report Type" required="true" labelFor="reportType"/>
-										<SegmentedButton id="reportType" width="100%" selectedKey="{screen1>/selection/type}" selectionChange="onReportTypeChange">
-											<items>
-												<SegmentedButtonItem key="M" text="Month"/>
-												<SegmentedButtonItem key="Q" text="Quarter"/>
-												<SegmentedButtonItem key="Y" text="Year"/>
-											</items>
-										</SegmentedButton>
 									</VBox>
 									<VBox class="prpoField prpoFieldYear">
 										<Label text="Year" required="true" labelFor="yearSelect"/>
@@ -381,6 +381,13 @@
 													<table:Column width="5.5rem" sortProperty="bnfpo"><Label text="PR Item"/>
 														<table:template><Text text="{detail>bnfpo}"/></table:template>
 													</table:Column>
+													<table:Column width="10rem" sortProperty="Status"><Label text="Status"/>
+														<table:template>
+															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
+																<customData><core:CustomData key="prpostatus" value="{detail>Status}" writeToDom="true"/></customData>
+															</ObjectStatus>
+														</table:template>
+													</table:Column>
 													<table:Column width="6rem" sortProperty="werks"><Label text="Plant"/>
 														<table:template><Text text="{detail>werks}"/></table:template>
 													</table:Column>
@@ -389,15 +396,6 @@
 													</table:Column>
 													<table:Column width="8rem" sortProperty="FRGDT"><Label text="PR Release Date"/>
 														<table:template><Text text="{detail>PRReleaseText}"/></table:template>
-													</table:Column>
-													<table:Column width="10rem" sortProperty="afnam_pr"><Label text="Requester"/>
-														<table:template><Text text="{detail>afnam_pr}"/></table:template>
-													</table:Column>
-													<table:Column width="8rem" sortProperty="ekgrp"><Label text="Purchase Group"/>
-														<table:template><Text text="{detail>ekgrp}"/></table:template>
-													</table:Column>
-													<table:Column width="15rem" sortProperty="name1"><Label text="Vendor"/>
-														<table:template><Text text="{detail>name1}"/></table:template>
 													</table:Column>
 													<table:Column width="8rem" sortProperty="Currency"><Label text="Currency"/>
 														<table:template><Text text="{detail>Currency}"/></table:template>
@@ -408,18 +406,32 @@
 													<table:Column width="12rem" sortProperty="matnr"><Label text="Material"/>
 														<table:template><Text text="{detail>matnr}"/></table:template>
 													</table:Column>
+													<table:Column width="8rem" sortProperty="PRQtyValue"><Label text="PR Quantity"/>
+														<table:template><Text text="{detail>PRQtyText}"/></table:template>
+													</table:Column>
+													<table:Column width="5rem" sortProperty="meins_pr"><Label text="PR UOM"/>
+														<table:template><Text text="{detail>meins_pr}"/></table:template>
+													</table:Column>
+													<table:Column width="12rem" sortProperty="UnitPriceValue"><Label text="PR Unit Price (Lakh)"/>
+														<table:template><Text text="{detail>PRUnitPriceText}"/></table:template>
+													</table:Column>
+													<table:Column width="13rem" sortProperty="PRValue"><Label text="PR Total Value (Lakh)"/>
+														<table:template><Text text="{detail>PRTotalValueText}"/></table:template>
+													</table:Column>
+													<table:Column width="10rem" sortProperty="afnam_pr"><Label text="Requester"/>
+														<table:template><Text text="{detail>afnam_pr}"/></table:template>
+													</table:Column>
+													<table:Column width="8rem" sortProperty="ekgrp"><Label text="Purchase Group"/>
+														<table:template><Text text="{detail>ekgrp}"/></table:template>
+													</table:Column>
+													<table:Column width="15rem" sortProperty="name1"><Label text="Vendor"/>
+														<table:template><Text text="{detail>name1}"/></table:template>
+													</table:Column>
 													<table:Column width="8.5rem" sortProperty="ebeln"><Label text="PO Number"/>
 														<table:template><Text text="{detail>ebeln}"/></table:template>
 													</table:Column>
 													<table:Column width="5.5rem" sortProperty="ebelp"><Label text="PO Item"/>
 														<table:template><Text text="{detail>ebelp}"/></table:template>
-													</table:Column>
-													<table:Column width="10rem" sortProperty="Status"><Label text="Status"/>
-														<table:template>
-															<ObjectStatus text="{detail>Status}" state="{detail>StatusState}" inverted="{= ${detail>Status} !== 'PO-Awaiting GR' }">
-																<customData><core:CustomData key="prpostatus" value="{detail>Status}" writeToDom="true"/></customData>
-															</ObjectStatus>
-														</table:template>
 													</table:Column>
 													<table:Column width="8rem" sortProperty="aedat_po"><Label text="PO Created"/>
 														<table:template><Text text="{detail>PODateText}"/></table:template>
@@ -430,12 +442,6 @@
 													<table:Column width="8rem" sortProperty="eindt"><Label text="Delivery Date"/>
 														<table:template><Text text="{detail>DeliveryText}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="PRQtyValue"><Label text="PR Quantity"/>
-														<table:template><Text text="{detail>PRQtyText}"/></table:template>
-													</table:Column>
-													<table:Column width="5rem" sortProperty="meins_pr"><Label text="PR UOM"/>
-														<table:template><Text text="{detail>meins_pr}"/></table:template>
-													</table:Column>
 													<table:Column width="8rem" sortProperty="POQtyValue"><Label text="PO Quantity"/>
 														<table:template><Text text="{detail>POQtyText}"/></table:template>
 													</table:Column>
@@ -445,11 +451,8 @@
 													<table:Column width="9rem" sortProperty="PendingQtyValue"><Label text="Pending Quantity"/>
 														<table:template><Text text="{detail>PendingQtyText}"/></table:template>
 													</table:Column>
-													<table:Column width="12rem" sortProperty="UnitPriceValue"><Label text="PR Unit Price (Lakh)"/>
-														<table:template><Text text="{detail>PRUnitPriceText}"/></table:template>
-													</table:Column>
-													<table:Column width="13rem" sortProperty="PRValue"><Label text="PR Total Value (Lakh)"/>
-														<table:template><Text text="{detail>PRTotalValueText}"/></table:template>
+													<table:Column width="8rem" sortProperty="days_between_pr_po"><Label text="PR – PO Days"/>
+														<table:template><Text text="{detail>days_between_pr_po}"/></table:template>
 													</table:Column>
 													<table:Column width="10rem" sortProperty="mblnr"><Label text="GR Document"/>
 														<table:template><Text text="{detail>mblnr}"/></table:template>
@@ -469,9 +472,7 @@
 													<table:Column width="5rem" sortProperty="gr_meins"><Label text="GR UOM"/>
 														<table:template><Text text="{detail>gr_meins}"/></table:template>
 													</table:Column>
-													<table:Column width="8rem" sortProperty="days_between_pr_po"><Label text="PR – PO Days"/>
-														<table:template><Text text="{detail>days_between_pr_po}"/></table:template>
-													</table:Column>
+													
 													<table:Column width="9rem" sortProperty="kostl_pr"><Label text="Cost Center"/>
 														<table:template><Text text="{detail>kostl_pr}"/></table:template>
 													</table:Column>
