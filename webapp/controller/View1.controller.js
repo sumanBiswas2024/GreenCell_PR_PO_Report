@@ -1054,6 +1054,39 @@ sap.ui.define([
 			}, 350);
 		},
 
+		/*
+		 * DETAIL DASHBOARD FORMULA REFERENCE
+		 * ----------------------------------
+		 * Counting unit: one distinct PR item (banfn + bnfpo), not one PR number and
+		 * not one GR posting. Repeated GR document items (mblnr + mjahr + ZEILE) are
+		 * deduplicated and their received quantities are summed onto the PR item.
+		 *
+		 * Status per PR item (_detailStatus):
+		 *   No PO Yet       = PO number (ebeln) is blank.
+		 *   PO-Awaiting GR  = PO exists, pending_qty > 0, and summed GR quantity = 0.
+		 *   PO-GR Partial   = PO exists, pending_qty > 0, and summed GR quantity > 0.
+		 *   Fully Received  = PO exists and pending_qty = 0.
+		 *   Over-Received   = PO exists and pending_qty < 0 (omitted from pipeline chart).
+		 *   Pending Unknown = PO exists and pending_qty is missing.
+		 *
+		 * KPI formulas (_buildDetailDashboard):
+		 *   PR Lines        = count of distinct PR items.
+		 *   Total PR Value  = sum of PR total value once per distinct PR item.
+		 *   PO Coverage     = No PO Yet PR items / all distinct PR items * 100.
+		 *   Fully Received  = count of PR items with PO and pending_qty = 0.
+		 *   Open PR         = count of PR items with PO and pending_qty > 0.
+		 *   Value Pending PO= sum(pending_qty * unit price) for PO items with pending_qty > 0.
+		 *
+		 * Chart formulas:
+		 *   Procurement Pipeline = distinct PR-item count by status; excludes Over-Received.
+		 *   PR–PO Lead Time       = distinct PO-backed PR-item count in each day bucket.
+		 *   Monthly PR Value      = sum(PR total value) by PR creation month and status;
+		 *                           monetary charts divide by 100,000 when displayed in lakhs.
+		 *   Top Vendors           = sum(PR total value) by vendor, descending, top ten.
+		 *
+		 * These are dashboard business definitions. Keep their calculation methods below
+		 * aligned with this reference when changing the counting unit or status rules.
+		 */
 		_buildDetailDashboard: function(sourceRows) {
 			var rows = sourceRows.map(function(record, index) {
 				var copy = Object.assign({}, record);
