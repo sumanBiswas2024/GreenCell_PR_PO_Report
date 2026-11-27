@@ -787,7 +787,7 @@ sap.ui.define([
 						matchesKpi = row.PRValue !== null && !!row.Currency;
 						break;
 					case "PO_COVERAGE":
-						matchesKpi = row.Status === "No PO Yet";
+						matchesKpi = row.Status !== "No PO Yet";
 						break;
 					case "FULLY_RECEIVED":
 						matchesKpi = row.Status === "Fully Received";
@@ -1209,7 +1209,7 @@ sap.ui.define([
 		 * KPI formulas (_buildDetailDashboard):
 		 *   PR Lines        = count of distinct PR items.
 		 *   Total PR Value  = sum of PR total value once per distinct PR item.
-		 *   PO Coverage     = No PO Yet PR items / all distinct PR items * 100.
+		 *   PO Coverage     = PR items with a PO / all distinct PR items * 100.
 		 *   Fully Received  = count of PR items with PO and pending_qty = 0.
 		 *   Open PR         = count of PR items with PO and pending_qty > 0.
 		 *   Value Pending PO= sum(pending_qty * unit price) for PO items with pending_qty > 0.
@@ -1301,27 +1301,28 @@ sap.ui.define([
 			// Sum PR item values and open-PO pending values only for a single known currency.
 			var totalPRValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, false) : null;
 			var pendingPOValue = singleCurrency ? this._sumLineValues(lines, singleCurrency, true) : null;
-			// Count blank-PO items; PO Coverage follows the requested definition as the share without a PO.
+			// Count PR items with a PO; blank ebeln values are not covered.
 			var noPOCount = lines.filter(function(line) {
 				return line.POBlank;
 			}).length;
+			// PO Coverage (%) = distinct PR items with a nonblank PO / all distinct PR items × 100.
+			var poCoverageRate = lines.length ? ((lines.length - noPOCount) / lines.length) * 100 : 0;
 			var openPRCount = lines.filter(function(line) {
 				return !line.POBlank && line.PendingQtyValue !== null && line.PendingQtyValue > 0;
 			}).length;
 			var fullyReceivedCount = lines.filter(function(line) {
 				return !line.POBlank && line.PendingQtyValue === 0;
 			}).length;
-			// PO Coverage (%) = PR items with blank PO / all distinct PR items × 100.
-			var noPORate = lines.length ? (noPOCount / lines.length) * 100 : 0;
 			var kpis = [
 				this._kpi("PR Lines", this._formatInteger(lines.length), "Distinct PR number and item", "sap-icon://document-text", lines.length,
 					"", "ALL"),
 				this._kpi("Total PR Value", totalPRValue === null ? "—" : this._formatCurrency(totalPRValue, singleCurrency),
 					"Sum of PR total price", "sap-icon://money-bills", totalPRValue, "", "PR_VALUE"),
-				this._kpi("PO Coverage", noPORate.toFixed(1), "PR lines with blank PO", "sap-icon://chain-link", noPORate, "%", "PO_COVERAGE"),
+				this._kpi("PO Coverage", poCoverageRate.toFixed(1), "PR lines with a PO", "sap-icon://chain-link", poCoverageRate, "%",
+					"PO_COVERAGE"),
 				this._kpi("Fully Received", this._formatInteger(fullyReceivedCount), "PO present and pending quantity = 0", "sap-icon://accept",
 					fullyReceivedCount, "", "FULLY_RECEIVED"),
-				this._kpi("Open PR", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount,
+				this._kpi("Open PO", this._formatInteger(openPRCount), "PO present and pending quantity > 0", "sap-icon://pending", openPRCount,
 					"", "OPEN_PR"),
 				this._kpi("Value Pending PO", pendingPOValue === null ? "—" : this._formatCurrency(pendingPOValue, singleCurrency),
 					"Pending quantity × unit price", "sap-icon://money-bills", pendingPOValue, "", "VALUE_PENDING")
